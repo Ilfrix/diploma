@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3B82F6" />
+    <meta name="description" content="Система распознавания дубликатов изображений - поиск похожих изображений с использованием нейросетей" />
+    
+    <meta name="keywords" content="распознавание изображений, поиск дубликатов, нейросети, компьютерное зрение, image recognition" />
+    <meta name="author" content="Duplicate Detection System" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Duplicate Detection System" />
+    <meta property="og:description" content="Система для поиска похожих и дублирующихся изображений" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <title>Duplicate Detection System - Поиск похожих изображений</title>
+    
+    <style>
+      /* Стили для предотвращения FOUC (Flash of Unstyled Content) */
+      .no-js {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        padding: 20px;
+      }
+      
+      .no-js a {
+        color: #ffd700;
+        text-decoration: none;
+      }
+      
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        margin-top: 20px;
+        color: white;
+        font-family: system-ui, -apple-system, sans-serif;
+        text-align: center;
+      }
+    </style>
+    
+    <script>
+      // Убираем экран загрузки после загрузки React
+      window.addEventListener('load', function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          setTimeout(function() {
+            loadingScreen.style.opacity = '0';
+            setTimeout(function() {
+              loadingScreen.style.display = 'none';
+            }, 500);
+          }, 500);
+        }
+      });
+      
+      // Проверка поддержки WebP
+      function checkWebPSupport() {
+        var canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        var ctx = canvas.getContext('2d');
+        var imageData = ctx.getImageData(0, 0, 1, 1);
+        var data = imageData.data;
+        try {
+          var webpData = canvas.toDataURL('image/webp');
+          var isSupported = webpData.indexOf('image/webp') === 5;
+          localStorage.setItem('webp_supported', isSupported);
+        } catch(e) {
+          localStorage.setItem('webp_supported', false);
+        }
+      }
+      checkWebPSupport();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <div class="no-js">
+        <div>
+          <h1>🚀 Включите JavaScript</h1>
+          <p>Для работы приложения Duplicate Detection System необходим JavaScript.</p>
+          <p>Пожалуйста, включите JavaScript в настройках вашего браузера.</p>
+          <br />
+          <a href="https://www.enable-javascript.com/ru/" target="_blank" rel="noopener noreferrer">
+            Инструкция по включению JavaScript
+          </a>
+        </div>
+      </div>
+    </noscript>
+    
+    <div id="loading-screen" class="loading-screen">
+      <div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">
+          <h2>Duplicate Detection System</h2>
+          <p>Загрузка приложения...</p>
+        </div>
+      </div>
+    </div>
+    
+    <div id="root"></div>
+    
+    <!-- Service Worker для PWA (опционально) -->
+    <script>
+      if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('ServiceWorker registration successful');
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
