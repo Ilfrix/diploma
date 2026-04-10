@@ -1,9 +1,11 @@
+// src/components/Samples/SampleDetail.jsx
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { samplesService } from '../../services/samples';
 import SimilarImages from '../Search/SimilarImages';
 import Loader from '../Common/Loader';
+import AuthorizedImage from '../Common/AuthorizedImage';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { FiEdit2, FiTrash2, FiArrowLeft } from 'react-icons/fi';
@@ -42,10 +44,6 @@ const SampleDetail = () => {
   if (isLoading) return <Loader />;
   if (!sample) return <div className="text-center">Эталон не найден</div>;
 
-  const imageUrl = sample.image_path
-    ? `http://localhost:8000/${sample.image_path}`
-    : '/placeholder-image.jpg';
-
   return (
     <div className="max-w-6xl mx-auto">
       <button
@@ -58,10 +56,11 @@ const SampleDetail = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="card p-6">
-          <img
-            src={imageUrl}
+          <AuthorizedImage
+            sampleId={sample.id}
             alt={sample.name}
             className="w-full rounded-lg shadow-md"
+            thumbnail={false}
           />
         </div>
         

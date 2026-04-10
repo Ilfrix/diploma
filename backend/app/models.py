@@ -1,10 +1,17 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime, Integer, Float, Text, ForeignKey, Boolean
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean, Enum
 from sqlalchemy.orm import relationship
+import enum
 
 from app.database import Base
+
+class SampleStatus(enum.Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    PROCESSED = "processed"
+    FAILED = "failed"
 
 class User(Base):
     __tablename__ = "users"
@@ -17,7 +24,6 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
-    # Отношения
     samples = relationship("Sample", back_populates="user", cascade="all, delete-orphan")
 
 class Sample(Base):
@@ -29,9 +35,10 @@ class Sample(Base):
     description = Column(Text)
     image_path = Column(String(500), nullable=False)
     image_hash = Column(String(64), unique=True, nullable=False, index=True)
-    vector_id = Column(String(100), unique=True, nullable=False)
+    vector_id = Column(String(100), unique=True, nullable=True)
+    status = Column(Enum(SampleStatus), default=SampleStatus.PENDING, nullable=False)
+    error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
-    # Отношения
     user = relationship("User", back_populates="samples")

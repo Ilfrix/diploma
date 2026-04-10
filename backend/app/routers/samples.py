@@ -1,17 +1,19 @@
 import os
 from typing import Optional, List
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import User, Sample
+from app.models import User, Sample, SampleStatus
 from app.schemas import SampleCreate, SampleUpdate, SampleResponse
 from app.auth import get_current_user
 from app.utils import hash_image, save_image_file, delete_image_file
 from app.ml.processor import process_image
 from app.vector_db import VectorDatabase
 from app.config import config
+from app.kafka_producer import kafka_producer
 
 router = APIRouter(prefix="/api/samples", tags=["samples"])
 
@@ -22,15 +24,16 @@ def set_vector_db(db):
     global vector_db
     vector_db = db
 
-@router.post("", response_model=SampleResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=SampleResponse, status_code=status.HTTP_202_ACCEPTED)
 async def create_new_sample(
     name: str = Form(...),
     description: Optional[str] = Form(None),
     image: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Создание нового эталона изображения"""
+    """Создание нового эталона изображения (асинхронная обработка)"""
     
     # Валидация файла
     if not image.content_type or not image.content_type.startswith("image/"):
@@ -52,14 +55,15 @@ async def create_new_sample(
             detail=f"Duplicate image already exists as sample: {existing_sample.id}"
         )
     
-    # Создание записи в БД
+    # Сохранение файла
     sample = Sample(
         user_id=current_user.id,
         name=name,
         description=description,
-        image_path="",
+        image_path="",  # Будет заполнено после сохранения
         image_hash=image_hash,
-        vector_id=""
+        vector_id=None,
+        status=SampleStatus.PENDING
     )
     
     db.add(sample)
@@ -67,35 +71,70 @@ async def create_new_sample(
     db.refresh(sample)
     
     try:
-        # Сохранение файла
+        # Сохранение файла на диск
+        await image.seek(0)
         image_path = save_image_file(image, current_user.id, sample.id)
         sample.image_path = image_path
+        db.commit()
         
-        # Обработка изображения ML
-        embedding, detections = process_image(image_bytes)
+        # Отправка в Kafka для асинхронной обработки
+        await kafka_producer.send_image_for_processing(
+            image_id=sample.id,
+            image_bytes=image_bytes,
+            metadata={
+                "user_id": current_user.id,
+                "username": current_user.username,
+                "name": name,
+                "description": description,
+                "image_path": image_path,
+                "image_hash": image_hash
+            }
+        )
         
-        # Сохранение в векторной БД
-        vector_id = f"sample_{sample.id}"
-        vector_db.add_vector(vector_id, embedding, {
-            "sample_id": sample.id,
-            "user_id": current_user.id,
-            "name": name,
-            "detections": detections
-        })
-        sample.vector_id = vector_id
-        
+        # Обновление статуса
+        sample.status = SampleStatus.PROCESSING
         db.commit()
         
     except Exception as e:
         # Откат при ошибке
         db.delete(sample)
         db.commit()
+        if image_path:
+            delete_image_file(image_path)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process image: {str(e)}"
+            detail=f"Failed to queue image for processing: {str(e)}"
         )
     
     return sample
+
+
+@router.get("/{sample_id}/status")
+async def get_sample_status(
+    sample_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение статуса обработки эталона"""
+    
+    sample = db.query(Sample).filter(
+        Sample.id == sample_id,
+        Sample.user_id == current_user.id
+    ).first()
+    
+    if not sample:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample not found"
+        )
+    
+    return {
+        "id": sample.id,
+        "status": sample.status.value,
+        "error_message": sample.error_message,
+        "is_ready": sample.status == SampleStatus.PROCESSED
+    }
+
 
 @router.get("/{sample_id}", response_model=SampleResponse)
 async def read_sample(
@@ -104,11 +143,13 @@ async def read_sample(
     db: Session = Depends(get_db)
 ):
     """Прочитать информацию об эталоне"""
+    print('router_get ' * 10)
     
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
         Sample.user_id == current_user.id
     ).first()
+    print(sample)
     
     if not sample:
         raise HTTPException(

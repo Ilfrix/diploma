@@ -5,6 +5,7 @@ import { samplesService } from '../../services/samples';
 import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
 import Loader from '../Common/Loader';
+import AuthorizedImage from '../Common/AuthorizedImage';
 import { FiUpload, FiX } from 'react-icons/fi';
 
 const SampleForm = () => {
@@ -19,6 +20,7 @@ const SampleForm = () => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [previewError, setPreviewError] = useState(false);
 
   const { data: sample, isLoading: isLoadingSample } = useQuery(
     ['sample', id],
@@ -32,9 +34,8 @@ const SampleForm = () => {
         name: sample.name,
         description: sample.description || '',
       });
-      if (sample.image_path) {
-        setImagePreview(`http://localhost:8000/${sample.image_path}`);
-      }
+      // Сброс ошибки превью при загрузке нового семпла
+      setPreviewError(false);
     }
   }, [sample]);
 
@@ -46,7 +47,9 @@ const SampleForm = () => {
     onDrop: (acceptedFiles) => {
       const file = acceptedFiles[0];
       setImageFile(file);
+      // Для новых файлов используем локальный preview
       setImagePreview(URL.createObjectURL(file));
+      setPreviewError(false);
     }
   });
 
@@ -105,6 +108,12 @@ const SampleForm = () => {
     });
   };
 
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setPreviewError(false);
+  };
+
   if (isEditing && isLoadingSample) return <Loader />;
 
   return (
@@ -139,9 +148,62 @@ const SampleForm = () => {
           />
         </div>
         
-        {(!isEditing || (isEditing && !sample?.image_path)) && (
+        {/* Показываем существующее изображение при редактировании */}
+        {isEditing && sample?.id && !imageFile && !previewError && (
           <div>
-            <label className="block text-gray-700 mb-2">Изображение *</label>
+            <label className="block text-gray-700 mb-2">Текущее изображение</label>
+            <div className="relative inline-block">
+              <AuthorizedImage
+                sampleId={sample.id}
+                alt={sample.name}
+                className="max-h-64 rounded-lg"
+                thumbnail={false}
+                onError={() => setPreviewError(true)}
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                title="Удалить изображение"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Нажмите на крестик, чтобы заменить изображение
+            </p>
+          </div>
+        )}
+        
+        {/* Показываем новое изображение при замене или создании */}
+        {imagePreview && (
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {isEditing ? 'Новое изображение' : 'Изображение'}
+            </label>
+            <div className="relative inline-block">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-64 rounded-lg" 
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Показываем дропзону только если нет изображения */}
+        {(!isEditing || (isEditing && !sample?.image_path) || imageFile) && (
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {isEditing ? 'Заменить изображение' : 'Изображение *'}
+            </label>
             <div
               {...getRootProps()}
               className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
@@ -156,22 +218,6 @@ const SampleForm = () => {
               )}
               <p className="text-sm text-gray-500 mt-2">Поддерживаются: JPEG, PNG, GIF, BMP</p>
             </div>
-          </div>
-        )}
-        
-        {imagePreview && (
-          <div className="relative inline-block">
-            <img src={imagePreview} alt="Preview" className="max-h-64 rounded-lg" />
-            <button
-              type="button"
-              onClick={() => {
-                setImageFile(null);
-                setImagePreview(null);
-              }}
-              className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
-            >
-              <FiX size={20} />
-            </button>
           </div>
         )}
         

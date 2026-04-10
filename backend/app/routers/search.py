@@ -1,11 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User, Sample
-from app.schemas import SimilarImage, SimilarResponse
+from app.schemas import SimilarImage, SimilarResponse, SampleResponse
 from app.auth import get_current_user
 from app.ml.processor import process_image
 
@@ -27,6 +27,7 @@ async def get_similar(
     db: Session = Depends(get_db)
 ):
     """Найти ближайшие изображения к эталону"""
+    print('get_similar ' * 10)
     
     # Получение эталона
     sample = db.query(Sample).filter(
@@ -41,7 +42,8 @@ async def get_similar(
         )
     
     # Получение эмбеддинга из векторной БД
-    embedding = vector_db.get_vector(sample.vector_id)
+    embedding = [1,2,3,4]
+    # embedding = vector_db.get_vector(sample.vector_id)
     if embedding is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -78,6 +80,29 @@ async def get_similar(
         query_name=sample.name,
         similar_images=similar_images[:limit]
     )
+
+
+@router.get("/{sample_id}", response_model=SampleResponse)
+async def read_sample(
+    sample_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Прочитать информацию об эталоне"""
+    
+    sample = db.query(Sample).filter(
+        Sample.id == sample_id,
+        Sample.user_id == current_user.id
+    ).first()
+    
+    if not sample:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample not found"
+        )
+    
+    return sample
+
 
 @router.post("/search/similar", response_model=List[SimilarImage])
 async def search_similar_by_image(

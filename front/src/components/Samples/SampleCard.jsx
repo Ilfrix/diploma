@@ -1,21 +1,21 @@
+// src/components/Samples/SampleCard.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import AuthorizedImage from '../Common/AuthorizedImage';
 
 const SampleCard = ({ sample, onDelete }) => {
-  const imageUrl = sample.image_path 
-    ? `http://localhost:8000/${sample.image_path}`
-    : '/placeholder-image.jpg';
-
   return (
     <div className="card group">
-      <div className="relative h-48 overflow-hidden bg-gray-200">
-        <img
-          src={imageUrl}
+      <div className="relative h-48 overflow-hidden bg-gray-200 flex items-center justify-center">
+        <AuthorizedImage
+          sampleId={sample.id}
           alt={sample.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="max-w-full max-h-full object-contain"
+          size={200}
+          thumbnail={true}
         />
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
           <Link

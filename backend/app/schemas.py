@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
+from enum import Enum
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
@@ -27,11 +28,19 @@ class SampleUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
 
+class SampleStatusEnum(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    PROCESSED = "processed"
+    FAILED = "failed"
+
 class SampleResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
     image_path: str
+    status: SampleStatusEnum
+    error_message: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

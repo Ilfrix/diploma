@@ -1,8 +1,10 @@
+// src/components/Search/SimilarImages.jsx
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { samplesService } from '../../services/samples';
 import { Link } from 'react-router-dom';
 import Loader from '../Common/Loader';
+import AuthorizedImage from '../Common/AuthorizedImage';
 
 const SimilarImages = ({ sampleId, sampleName, similarImages: externalImages, title }) => {
   const { data: similarData, isLoading } = useQuery(
@@ -37,10 +39,12 @@ const SimilarImages = ({ sampleId, sampleName, similarImages: externalImages, ti
             className="card group"
           >
             <div className="relative">
-              <img
-                src={`http://localhost:8000/${image.image_path}`}
+              <AuthorizedImage
+                sampleId={image.sample_id}
                 alt={image.name}
                 className="w-full h-48 object-cover"
+                size={200}
+                thumbnail={true}
               />
               <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-full text-sm">
                 {Math.round(image.similarity_score * 100)}%
