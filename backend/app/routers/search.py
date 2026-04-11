@@ -2,6 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
+import numpy as np
 
 from app.database import get_db
 from app.models import User, Sample
@@ -27,7 +28,7 @@ async def get_similar(
     db: Session = Depends(get_db)
 ):
     """Найти ближайшие изображения к эталону"""
-    print('get_similar ' * 10)
+    print('get_similar in search!!! ' * 10)
     
     # Получение эталона
     sample = db.query(Sample).filter(
@@ -42,8 +43,8 @@ async def get_similar(
         )
     
     # Получение эмбеддинга из векторной БД
-    embedding = [1,2,3,4]
-    # embedding = vector_db.get_vector(sample.vector_id)
+    # embedding = np.ones(512,)
+    embedding = vector_db.get_vector(sample.vector_id)
     if embedding is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -60,6 +61,7 @@ async def get_similar(
     # Фильтрация результатов
     similar_images = []
     for vec_id, score, metadata in similar_vectors:
+        print(vec_id, sample.vector_id)
         if vec_id == sample.vector_id:
             continue
             
@@ -113,7 +115,7 @@ async def search_similar_by_image(
     db: Session = Depends(get_db)
 ):
     """Поиск похожих изображений по загруженному файлу (без сохранения)"""
-    
+    print('search_similar POST!')
     # Валидация файла
     if not image.content_type or not image.content_type.startswith("image/"):
         raise HTTPException(
@@ -146,5 +148,6 @@ async def search_similar_by_image(
                     similarity_score=float(score),
                     image_path=sample.image_path
                 ))
+    print(similar_images)
     
     return similar_images[:limit]

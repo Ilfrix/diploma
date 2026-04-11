@@ -12,6 +12,7 @@ from app.ml.worker import MLProcessingWorker
 from app.kafka_producer import kafka_producer
 from app.kafka_consumer import kafka_consumer
 from app.routers import auth_router, samples_router, search_router, upload_router
+from app.routers.search import set_vector_db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ async def lifespan(app: FastAPI):
     # Инициализация векторной БД
     global vector_db, ml_worker
     vector_db = VectorDatabase(db_path=config.VECTOR_DB_PATH)
+    set_vector_db(vector_db)
     
     # Инициализация Kafka продюсера
     await kafka_producer.start()

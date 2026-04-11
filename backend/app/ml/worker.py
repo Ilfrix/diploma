@@ -57,7 +57,7 @@ class MLProcessingWorker:
             
         except Exception as e:
             logger.error(f"Error processing image {image_id}: {e}")
-            await self._update_sample_status(image_id, None, SampleStatus.FAILED, str(e))
+            await self._update_sample_status(image_id, vector_id, SampleStatus.FAILED, str(e))
     
     async def _update_sample_status(self, sample_id: str, vector_id: str, 
                                    status: str, error: str = None):
@@ -66,10 +66,11 @@ class MLProcessingWorker:
         try:
             sample = db.query(Sample).filter(Sample.id == sample_id).first()
             if sample:
-                if status == "completed":
+                print(status)
+                if status == SampleStatus.PROCESSED:
                     sample.vector_id = vector_id
                     sample.status = SampleStatus.PROCESSED
-                elif status == "failed":
+                elif status == SampleStatus.FAILED:
                     sample.status = SampleStatus.FAILED
                     sample.error_message = error
                 db.commit()
