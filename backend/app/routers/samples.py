@@ -47,7 +47,10 @@ async def create_new_sample(
     
     # Проверка дубликата по хэшу
     image_hash = hash_image(image_bytes)
-    existing_sample = db.query(Sample).filter(Sample.image_hash == image_hash).first()
+    existing_sample = db.query(Sample).filter(
+        Sample.image_hash == image_hash,
+        Sample.user_id == current_user.id
+    ).first()
     
     if existing_sample:
         raise HTTPException(

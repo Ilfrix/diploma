@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean, Enum
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean, Enum, UniqueConstraint
 from sqlalchemy.orm import relationship
 import enum
 
@@ -34,7 +34,7 @@ class Sample(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     image_path = Column(String(500), nullable=False)
-    image_hash = Column(String(64), unique=True, nullable=False, index=True)
+    image_hash = Column(String(64), nullable=False, index=True)  # Убрали unique=True
     vector_id = Column(String(100), unique=True, nullable=True)
     status = Column(Enum(SampleStatus), default=SampleStatus.PENDING, nullable=False)
     error_message = Column(Text, nullable=True)
@@ -42,3 +42,8 @@ class Sample(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
     user = relationship("User", back_populates="samples")
+    
+    # Составной уникальный индекс на (image_hash, user_id)
+    __table_args__ = (
+        UniqueConstraint('image_hash', 'user_id', name='uq_sample_image_hash_user_id'),
+    )
