@@ -32,6 +32,6 @@ def process_image(image_bytes: bytes) -> Tuple[np.ndarray, Dict[str, Any]]:
     
     # Извлечение эмбеддингов
     # embedding = encoder.encode(image_array) if encoder else np.random.rand(512)
-    embedding = np.ones(512)
+    embedding = encoder.encode(crops)
     # detections = [1, 2]
     return embedding, detections

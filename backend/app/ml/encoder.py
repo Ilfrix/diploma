@@ -1,7 +1,8 @@
 import logging
 import timm
 import numpy as np
-from PIL import Image
+import torch
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -30,25 +31,22 @@ class ImageEncoder:
             self.model = None
 
     
-    def encode(self, image: np.ndarray) -> np.ndarray:
+    def encode(self, images: List) -> np.ndarray:
         """Извлечение эмбеддинга изображения"""
         if self.model is None:
             # Заглушка - возвращаем случайный вектор
             return np.random.rand(512)
         
-        # Здесь должно быть реальное извлечение признаков
-        # embedding = self.model.encode(image)
+        embeddings = []
         
-        image = Image.open(image_path).convert('RGB')
+        for image in images:
+            input_tensor = self.transforms(image).unsqueeze(0)  # [1, 3, 384, 384]
         
-        # Применяем трансформации
-        input_tensor = self.transform(cropped).unsqueeze(0)  # [1, 3, 384, 384]
+            with torch.no_grad():
+                features = self.model(input_tensor)  # [1, 1280]
+            embeddings.append(features.squeeze().numpy())
         
-        # Получаем эмбеддинг
-        with torch.no_grad():
-            features = self.model(input_tensor)  # [1, 1280]
-        
-        return features.squeeze().numpy()
+        return embeddings
     
     def is_loaded(self) -> bool:
         """Проверка загрузки модели"""
