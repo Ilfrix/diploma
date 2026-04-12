@@ -6,13 +6,13 @@ import logging
 
 from app.config import config
 from app.database import engine, Base
-from app.vector_db import VectorDatabase
 from app.ml.processor import init_ml_models
 from app.ml.worker import MLProcessingWorker
 from app.kafka_producer import kafka_producer
 from app.kafka_consumer import kafka_consumer
 from app.routers import auth_router, samples_router, search_router, upload_router
 from app.routers.search import set_vector_db
+from app.milvus_db import MilvusDatabase
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -38,7 +38,12 @@ async def lifespan(app: FastAPI):
     
     # Инициализация векторной БД
     global vector_db, ml_worker
-    vector_db = VectorDatabase(db_path=config.VECTOR_DB_PATH)
+    vector_db = MilvusDatabase(
+        host=config.MILVUS_HOST,
+        port=config.MILVUS_PORT,
+        collection_name=config.MILVUS_COLLECTION_NAME,
+        dim=config.VECTOR_DIM,
+    )
     set_vector_db(vector_db)
     
     # Инициализация Kafka продюсера

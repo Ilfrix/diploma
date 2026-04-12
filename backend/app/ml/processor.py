@@ -25,7 +25,7 @@ def process_image(image_bytes: bytes) -> Tuple[np.ndarray, Dict[str, Any]]:
     image = Image.open(io.BytesIO(image_bytes))
     
     detections = detector.detect(image) if detector else {}
-    crops = detector.get_crops(image, detections['boxes'])
+    crops = detector.get_crops(image, detections.get('boxes', []))
     print('найдены')
     print('='*100)
     print(detections)

@@ -18,6 +18,12 @@ class Config:
     KAFKA_IMAGE_TOPIC = os.getenv("KAFKA_IMAGE_TOPIC", "image-processing")
     KAFKA_RESULT_TOPIC = os.getenv("KAFKA_RESULT_TOPIC", "image-results")
     KAFKA_CONSUMER_GROUP = os.getenv("KAFKA_CONSUMER_GROUP", "ml-processor-group")
+
+    # Milvus
+    MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
+    MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
+    MILVUS_COLLECTION_NAME = os.getenv("MILVUS_COLLECTION_NAME", "image_vectors")
+    VECTOR_DIM = int(os.getenv("VECTOR_DIM", "1280"))
     
     @classmethod
     def ensure_directories(cls):

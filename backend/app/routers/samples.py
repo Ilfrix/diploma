@@ -11,7 +11,6 @@ from app.schemas import SampleCreate, SampleUpdate, SampleResponse
 from app.auth import get_current_user
 from app.utils import hash_image, save_image_file, delete_image_file
 from app.ml.processor import process_image
-from app.vector_db import VectorDatabase
 from app.config import config
 from app.kafka_producer import kafka_producer
 
