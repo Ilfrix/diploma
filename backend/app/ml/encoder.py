@@ -1,5 +1,7 @@
 import logging
+import timm
 import numpy as np
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -14,13 +16,19 @@ class ImageEncoder:
     def _load_model(self):
         """Загрузка модели энкодера"""
         try:
-            # Здесь должна быть реальная загрузка модели
-            # self.model = load_model(self.model_path)
-            logger.info(f"Encoder model loaded from {self.model_path}")
-            self.model = True  # Заглушка
+            self.model = timm.create_model(
+                self.model_path,
+                pretrained=True,
+                num_classes=0  # Убираем голову, оставляем только features
+            )
+            self.model.eval()
+            data_config = timm.data.resolve_model_data_config(self.model)
+            self.transforms = timm.data.create_transform(**data_config, is_training=False)
+            logger.info(f"Encoder model and transforms loaded from {self.model_path}")
         except Exception as e:
             logger.error(f"Failed to load encoder model: {e}")
             self.model = None
+
     
     def encode(self, image: np.ndarray) -> np.ndarray:
         """Извлечение эмбеддинга изображения"""
@@ -31,8 +39,16 @@ class ImageEncoder:
         # Здесь должно быть реальное извлечение признаков
         # embedding = self.model.encode(image)
         
-        # Заглушка
-        return np.random.rand(512)
+        image = Image.open(image_path).convert('RGB')
+        
+        # Применяем трансформации
+        input_tensor = self.transform(cropped).unsqueeze(0)  # [1, 3, 384, 384]
+        
+        # Получаем эмбеддинг
+        with torch.no_grad():
+            features = self.model(input_tensor)  # [1, 1280]
+        
+        return features.squeeze().numpy()
     
     def is_loaded(self) -> bool:
         """Проверка загрузки модели"""

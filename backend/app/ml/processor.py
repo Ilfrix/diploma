@@ -23,12 +23,12 @@ def process_image(image_bytes: bytes) -> Tuple[np.ndarray, Dict[str, Any]]:
     """Синхронная обработка изображения: детекция и извлечение признаков"""
     # Загрузка изображения
     image = Image.open(io.BytesIO(image_bytes))
-    image_array = np.array(image)
-    print('process')
-    print(detector)
     
-    # Детекция объектов (если нужно)
-    detections = detector.detect(image_array) if detector else {}
+    detections = detector.detect(image) if detector else {}
+    crops = detector.get_crops(image, detections['boxes'])
+    print('найдены')
+    print('='*100)
+    print(detections)
     
     # Извлечение эмбеддингов
     # embedding = encoder.encode(image_array) if encoder else np.random.rand(512)

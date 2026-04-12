@@ -51,10 +51,7 @@ class MLProcessingWorker:
             await self._update_sample_status(image_id, vector_id, SampleStatus.PROCESSED)
             
             logger.info(f"Successfully processed image {image_id}")
-            
-            # Здесь можно отправить результат в другой топик при необходимости
-            # await self._send_result_to_kafka(image_id, embedding, detections)
-            
+
         except Exception as e:
             logger.error(f"Error processing image {image_id}: {e}")
             await self._update_sample_status(image_id, vector_id, SampleStatus.FAILED, str(e))

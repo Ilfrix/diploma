@@ -3,6 +3,8 @@ import numpy as np
 from ultralytics import YOLO
 from pathlib import Path
 import cv2
+import PIL
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -58,10 +60,10 @@ class ImageDetector:
         
         try:
             # Конвертация в RGB если изображение в BGR (OpenCV формат)
-            if len(image.shape) == 3 and image.shape[2] == 3:
-                # Предполагаем, что изображение в BGR (как из cv2.imread)
-                # YOLO ожидает RGB, но может работать и с BGR
-                pass
+            # if len(image.shape) == 3 and image.shape[2] == 3:
+            #     # Предполагаем, что изображение в BGR (как из cv2.imread)
+            #     # YOLO ожидает RGB, но может работать и с BGR
+            #     pass
             
             # Выполнение инференса
             results = self.model(image, conf=self.confidence, verbose=False)
@@ -93,7 +95,7 @@ class ImageDetector:
                             "confidence": float(conf),
                             "class_id": int(cls_id),
                             "class_name": class_name,
-                            "area": float((x2 - x1) * (y2 - y1))
+                            # "area": float((x2 - x1) * (y2 - y1))
                         }
                         
                         detections.append(detection)
@@ -120,36 +122,18 @@ class ImageDetector:
                 "classes": [],
                 "confidences": []
             }
+
     
-    def detect_and_draw(self, image: np.ndarray, draw: bool = True) -> np.ndarray:
-        """
-        Детекция объектов и отрисовка bounding boxes
-        
-        Args:
-            image: numpy array изображения
-            draw: рисовать ли bounding boxes
-            
-        Returns:
-            image_with_boxes: изображение с отрисованными боксами (если draw=True)
-        """
-        if self.model is None:
-            return image
-        
-        try:
-            # Выполняем детекцию
-            results = self.model(image, conf=self.confidence, verbose=False)
-            
-            if draw and len(results) > 0:
-                # Получаем изображение с отрисованными боксами
-                annotated_image = results[0].plot()
-                return annotated_image
-            
-            return image
-            
-        except Exception as e:
-            logger.error(f"Detection and drawing failed: {e}")
-            return image
-    
+    def get_crops(self, image: PIL.Image, bboxes: List[List[float]]):
+        crops = []
+        for x1, y1, x2, y2 in bboxes:
+            crop = image.crop((x1,y1,x2,y2))
+            crop.save(f'crop_{x1}.jpg')
+            crops.append(crop)
+
+        return crops
+
+
     def is_loaded(self) -> bool:
         """Проверка загрузки модели"""
         return self.model is not None

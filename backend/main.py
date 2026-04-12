@@ -29,7 +29,6 @@ async def lifespan(app: FastAPI):
     
     # Создание директорий
     config.ensure_directories()
-    print(config.MODEL_PATH)
     
     # Инициализация ML моделей
     init_ml_models(
