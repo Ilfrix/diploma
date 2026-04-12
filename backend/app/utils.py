@@ -25,14 +25,9 @@ def save_image_file(file: UploadFile, user_id: str, sample_id: str) -> str:
     with open(file_path, "wb") as f:
         f.write(content)
     
-    # Проверка сохраненного файла
-    saved_size = os.path.getsize(file_path)
-    print(f"Saved file size: {saved_size} bytes")
-    
     # Проверка сигнатуры файла (magic bytes)
     with open(file_path, "rb") as f:
         header = f.read(20)
-        print(f"Saved file header: {header[:20]}")
     
     file.file.seek(0)
     

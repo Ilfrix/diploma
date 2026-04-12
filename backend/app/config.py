@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('app/1.env')
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "key")
@@ -23,7 +23,7 @@ class Config:
     def ensure_directories(cls):
         """Создание необходимых директорий"""
         os.makedirs(cls.UPLOAD_DIR, exist_ok=True)
-        os.makedirs(cls.MODEL_PATH, exist_ok=True)
+        # os.makedirs(cls.MODEL_PATH, exist_ok=True)
         os.makedirs(cls.VECTOR_DB_PATH, exist_ok=True)
 
 config = Config()

@@ -24,12 +24,14 @@ def process_image(image_bytes: bytes) -> Tuple[np.ndarray, Dict[str, Any]]:
     # Загрузка изображения
     image = Image.open(io.BytesIO(image_bytes))
     image_array = np.array(image)
+    print('process')
+    print(detector)
     
     # Детекция объектов (если нужно)
-    # detections = detector.detect(image_array) if detector else {}
+    detections = detector.detect(image_array) if detector else {}
     
     # Извлечение эмбеддингов
     # embedding = encoder.encode(image_array) if encoder else np.random.rand(512)
     embedding = np.ones(512)
-    detections = [1, 2]
+    # detections = [1, 2]
     return embedding, detections

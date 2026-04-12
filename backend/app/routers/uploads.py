@@ -28,14 +28,12 @@ async def get_uploaded_image(
     Args:
         image_id: ID семпла или имя файла (с расширением или без)
     """
-    print('get_uploaded_image!')
     
     # Пытаемся найти семпл по ID
     sample = db.query(Sample).filter(
         Sample.id == image_id,
         Sample.user_id == current_user.id
     ).first()
-    print('sample', sample)
     
     file_path = None
     
@@ -102,7 +100,6 @@ async def get_image_thumbnail(
     db: Session = Depends(get_db)
 ):
     """Получение миниатюры изображения"""
-    print('GETTTTT')
     # Получаем оригинальное изображение
     sample = db.query(Sample).filter(
         Sample.id == image_id,
