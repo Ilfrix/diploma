@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv('app/1.env')
+load_dotenv('app/1.env')  # Этот путь относительно место запуска main.py
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "key")

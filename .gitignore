@@ -4,6 +4,8 @@ backups
 node_modules
 data
 __pycache__
-.env
+*.env
+*.pt
+models
 uploads
 vector_db

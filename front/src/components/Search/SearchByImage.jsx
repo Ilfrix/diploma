@@ -31,6 +31,10 @@ const SearchByImage = () => {
     (formData) => samplesService.searchByImage(formData, limit, threshold),
     {
       onSuccess: (data) => {
+        console.log('Search results:', data); // <-- Добавьте это
+        console.log('Data type:', typeof data);
+        console.log('Is array:', Array.isArray(data));
+        console.log('Length:', data?.length);
         setSearchResults(data);
         if (data.length === 0) {
           toast('Похожих изображений не найдено', { icon: '🔍' });
@@ -143,6 +147,7 @@ const SearchByImage = () => {
             <SimilarImages
               similarImages={searchResults}
               title="Результаты поиска"
+
             />
           )}
         </div>
