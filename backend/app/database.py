@@ -8,7 +8,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """Dependency для получения сессии БД"""
+    """Зависимость(Dependency) для получения сессии БД"""
     db = SessionLocal()
     try:
         yield db

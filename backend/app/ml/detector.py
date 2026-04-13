@@ -8,6 +8,7 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+
 class ImageDetector:
     """Класс для детекции объектов на изображении"""
     
@@ -128,7 +129,7 @@ class ImageDetector:
         crops = []
         for x1, y1, x2, y2 in bboxes:
             crop = image.crop((x1,y1,x2,y2))
-            crop.save(f'crop_{x1}.jpg')
+            # crop.save(f'crop_{x1}.jpg')
             crops.append(crop)
 
         return crops

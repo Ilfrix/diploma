@@ -94,12 +94,6 @@ class MilvusDatabase:
                     "params": {"nlist": 128}
                 }
                 self.collection.create_index("vector", index_params)
-                
-                # Создаем индексы для фильтрации
-                # index_params_simple = {"index_type": "IVF_FLAT", "params": {"nprobe": 10}}
-                # self.collection.create_index("sample_id", index_params_simple)
-                # self.collection.create_index("user_id", index_params_simple)
-                
                 logger.info(f"Created new collection with explicit schema: {self.collection_name}")
             
             # Загружаем коллекцию в память

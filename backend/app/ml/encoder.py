@@ -34,7 +34,6 @@ class ImageEncoder:
     def encode(self, images: List) -> np.ndarray:
         """Извлечение эмбеддинга изображения"""
         if self.model is None:
-            # Заглушка - возвращаем случайный вектор
             return np.random.rand(512)
         
         embeddings = []

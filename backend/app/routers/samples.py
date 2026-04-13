@@ -9,10 +9,10 @@ from app.database import get_db
 from app.models import User, Sample, SampleStatus
 from app.schemas import SampleCreate, SampleUpdate, SampleResponse
 from app.auth import get_current_user
-from app.utils import hash_image, save_image_file, delete_image_file
-from app.ml.processor import process_image
+from app.utils import hash_image
 from app.config import config
 from app.kafka_producer import kafka_producer
+from app.minio_client import minio_client  # Импортируем MinIO клиент
 
 router = APIRouter(prefix="/api/samples", tags=["samples"])
 
@@ -34,6 +34,8 @@ async def create_new_sample(
 ):
     """Создание нового эталона изображения (асинхронная обработка)"""
     
+    print('post start')
+    print(minio_client)
     # Валидация файла
     if not image.content_type or not image.content_type.startswith("image/"):
         raise HTTPException(
@@ -43,40 +45,50 @@ async def create_new_sample(
     
     # Чтение содержимого
     image_bytes = await image.read()
-    
+    # print(image_bytes)
     # Проверка дубликата по хэшу
     image_hash = hash_image(image_bytes)
+    print(image_hash)
     existing_sample = db.query(Sample).filter(
         Sample.image_hash == image_hash,
         Sample.user_id == current_user.id
     ).first()
-    
+    print(existing_sample)
+
     if existing_sample:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Duplicate image already exists as sample: {existing_sample.id}"
         )
     
-    # Сохранение файла
+    # Сохранение файла в MinIO
     sample = Sample(
         user_id=current_user.id,
         name=name,
         description=description,
-        image_path="",  # Будет заполнено после сохранения
+        image_path="",  # Будет заполнено после загрузки в MinIO
         image_hash=image_hash,
         vector_id=None,
         status=SampleStatus.PENDING
     )
+    print(sample)
     
     db.add(sample)
     db.commit()
     db.refresh(sample)
+    print('db success')
     
     try:
-        # Сохранение файла на диск
-        await image.seek(0)
-        image_path = save_image_file(image, current_user.id, sample.id)
-        sample.image_path = image_path
+        # Загружаем изображение в MinIO
+        object_path = f"samples/{current_user.id}/{sample.id}/{image.filename}"
+
+        minio_client.upload_file(
+            file_data=image_bytes,
+            object_path=object_path,
+            content_type=image.content_type
+        )
+        print('upload')
+        sample.image_path = object_path
         db.commit()
         
         # Отправка в Kafka для асинхронной обработки
@@ -88,7 +100,7 @@ async def create_new_sample(
                 "username": current_user.username,
                 "name": name,
                 "description": description,
-                "image_path": image_path,
+                "image_path": object_path,
                 "image_hash": image_hash
             }
         )
@@ -101,42 +113,14 @@ async def create_new_sample(
         # Откат при ошибке
         db.delete(sample)
         db.commit()
-        if image_path:
-            delete_image_file(image_path)
+        if object_path:
+            minio_client.delete_file(object_path)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to queue image for processing: {str(e)}"
         )
     
     return sample
-
-
-@router.get("/{sample_id}/status")
-async def get_sample_status(
-    sample_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Получение статуса обработки эталона"""
-    
-    sample = db.query(Sample).filter(
-        Sample.id == sample_id,
-        Sample.user_id == current_user.id
-    ).first()
-    
-    if not sample:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Sample not found"
-        )
-    
-    return {
-        "id": sample.id,
-        "status": sample.status.value,
-        "error_message": sample.error_message,
-        "is_ready": sample.status == SampleStatus.PROCESSED
-    }
-
 
 @router.get("/{sample_id}", response_model=SampleResponse)
 async def read_sample(
@@ -145,13 +129,11 @@ async def read_sample(
     db: Session = Depends(get_db)
 ):
     """Прочитать информацию об эталоне"""
-    print('router_get ' * 10)
     
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
         Sample.user_id == current_user.id
     ).first()
-    print(sample)
     
     if not sample:
         raise HTTPException(
@@ -160,6 +142,41 @@ async def read_sample(
         )
     
     return sample
+
+@router.get("/{sample_id}/image")
+async def get_sample_image(
+    sample_id: str,
+    expires: int = 3600,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получить временную ссылку на изображение из MinIO"""
+    
+    sample = db.query(Sample).filter(
+        Sample.id == sample_id,
+        Sample.user_id == current_user.id
+    ).first()
+    
+    if not sample:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample not found"
+        )
+    
+    if not sample.image_path:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Image not found"
+        )
+    
+    # Получаем временную ссылку из MinIO
+    image_url = minio_client.get_file_url(sample.image_path, expires)
+    
+    return {
+        "sample_id": sample_id,
+        "image_url": image_url,
+        "expires_in": expires
+    }
 
 @router.put("/{sample_id}", response_model=SampleResponse)
 async def update_sample(
@@ -224,8 +241,9 @@ async def delete_sample(
     if vector_db:
         vector_db.delete_vector(sample.vector_id)
     
-    # Удаление файла изображения
-    delete_image_file(sample.image_path)
+    # Удаление файла из MinIO
+    if sample.image_path:
+        minio_client.delete_file(sample.image_path)
     
     # Удаление из реляционной БД
     db.delete(sample)

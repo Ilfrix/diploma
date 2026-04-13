@@ -13,6 +13,7 @@ from app.kafka_consumer import kafka_consumer
 from app.routers import auth_router, samples_router, search_router, upload_router
 from app.routers.search import set_vector_db
 from app.milvus_db import MilvusDatabase
+from app.minio_client import minio_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 # Глобальные объекты
 vector_db = None
 ml_worker = None
+minio = minio_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,7 +30,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up...")
     
     # Создание директорий
-    config.ensure_directories()
+    # config.ensure_directories()
     
     # Инициализация ML моделей
     init_ml_models(
@@ -98,10 +100,11 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "services": {
-            "vector_db": vector_db.health_check() if vector_db else "not initialized",
+            "milvus": vector_db.health_check() if vector_db else "not initialized",
             "kafka_producer": "running" if kafka_producer._running else "stopped",
             "kafka_consumer": "running" if kafka_consumer._running else "stopped",
-            "ml_worker": "running" if ml_worker and ml_worker._running else "stopped"
+            "ml_worker": "running" if ml_worker and ml_worker._running else "stopped",
+            "minio": minio.health_check()
         }
     }
 

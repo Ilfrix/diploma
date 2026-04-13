@@ -25,11 +25,10 @@ class Config:
     MILVUS_COLLECTION_NAME = os.getenv("MILVUS_COLLECTION_NAME", "image_vectors")
     VECTOR_DIM = int(os.getenv("VECTOR_DIM", "1280"))
     
-    @classmethod
-    def ensure_directories(cls):
-        """Создание необходимых директорий"""
-        os.makedirs(cls.UPLOAD_DIR, exist_ok=True)
-        # os.makedirs(cls.MODEL_PATH, exist_ok=True)
-        os.makedirs(cls.VECTOR_DB_PATH, exist_ok=True)
+    # S3
+    MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
+    MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
+    MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
+    MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME")
 
 config = Config()
