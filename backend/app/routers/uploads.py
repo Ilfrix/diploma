@@ -9,23 +9,23 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import User, Sample
+from app.models import User, Sample, ImageModel
 from app.auth import get_current_user
 from app.minio_client import minio_client
 
 router = APIRouter(prefix="/api/uploads", tags=["uploads"])
 
 
-def get_object_path_from_sample(sample: Sample) -> Optional[str]:
-    """Получить путь к объекту в MinIO из семпла"""
-    if sample and sample.image_path:
-        if minio_client.file_exists(sample.image_path):
-            return sample.image_path
+def get_image_path_from_sample(sample: Sample) -> Optional[str]:
+    """Получить путь к изображению в MinIO из семпла через связанную таблицу Image"""
+    if sample and sample.image:
+        if minio_client.file_exists(sample.image.image_path):
+            return sample.image.image_path
     return None
 
 
 def find_object_by_pattern(user_id: str, image_id: str) -> Optional[str]:
-    """Найти объект в MinIO по паттерну"""
+    """Найти объект в MinIO по паттерну (для совместимости со старыми данными)"""
     # Паттерн: samples/{user_id}/{image_id}/*
     prefix = f"samples/{user_id}/{image_id}/"
     files = minio_client.list_files(prefix=prefix, recursive=False)
@@ -60,9 +60,9 @@ async def get_uploaded_image(
     ).first()
     
     if sample:
-        object_path = get_object_path_from_sample(sample)
+        object_path = get_image_path_from_sample(sample)
     
-    # Если не нашли через семпл, ищем по паттерну
+    # Если не нашли через семпл, ищем по паттерну (старые данные)
     if not object_path:
         object_path = find_object_by_pattern(current_user.id, image_id)
     
@@ -95,7 +95,7 @@ async def get_image_thumbnail(
     ).first()
     
     if sample:
-        object_path = get_object_path_from_sample(sample)
+        object_path = get_image_path_from_sample(sample)
     
     # Если не нашли, ищем по паттерну
     if not object_path:
@@ -162,13 +162,15 @@ async def get_sample_image(
             detail="Sample not found"
         )
     
-    if not sample.image_path:
+    if not sample.image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image path not found"
+            detail="Image not found for this sample"
         )
     
-    if not minio_client.file_exists(sample.image_path):
+    image_path = sample.image.image_path
+    
+    if not minio_client.file_exists(image_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Image file not found in storage"
@@ -178,7 +180,7 @@ async def get_sample_image(
     if thumbnail:
         try:
             # Скачиваем оригинал из MinIO
-            image_bytes = minio_client.download_file(sample.image_path)
+            image_bytes = minio_client.download_file(image_path)
             
             # Создаем миниатюру
             with Image.open(io.BytesIO(image_bytes)) as img:
@@ -206,7 +208,7 @@ async def get_sample_image(
             )
     
     # Возвращаем временную ссылку на оригинал
-    image_url = minio_client.get_file_url(sample.image_path, expires=3600)
+    image_url = minio_client.get_file_url(image_path, expires=3600)
     return RedirectResponse(url=image_url)
 
 
@@ -231,19 +233,21 @@ async def get_sample_presigned_url(
             detail="Sample not found"
         )
     
-    if not sample.image_path:
+    if not sample.image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image path not found"
+            detail="Image not found for this sample"
         )
     
-    if not minio_client.file_exists(sample.image_path):
+    image_path = sample.image.image_path
+    
+    if not minio_client.file_exists(image_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Image file not found in storage"
         )
     
-    image_url = minio_client.get_file_url(sample.image_path, expires)
+    image_url = minio_client.get_file_url(image_path, expires)
     
     return {
         "sample_id": sample_id,
@@ -273,22 +277,24 @@ async def download_sample_image(
             detail="Sample not found"
         )
     
-    if not sample.image_path:
+    if not sample.image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image path not found"
+            detail="Image not found for this sample"
         )
     
+    image_path = sample.image.image_path
+    
     # Скачиваем файл из MinIO
-    image_bytes = minio_client.download_file(sample.image_path)
+    image_bytes = minio_client.download_file(image_path)
     
     # Определяем MIME тип
-    mime_type, _ = mimetypes.guess_type(sample.image_path)
+    mime_type, _ = mimetypes.guess_type(image_path)
     if not mime_type:
         mime_type = "application/octet-stream"
     
     # Получаем имя файла
-    filename = sample.image_path.split('/')[-1]
+    filename = image_path.split('/')[-1]
     
     return Response(
         content=image_bytes,
@@ -320,13 +326,14 @@ async def get_sample_image_info(
             detail="Sample not found"
         )
     
-    if not sample.image_path:
+    if not sample.image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image path not found"
+            detail="Image not found for this sample"
         )
     
-    file_info = minio_client.get_file_info(sample.image_path)
+    image_path = sample.image.image_path
+    file_info = minio_client.get_file_info(image_path)
     
     if not file_info:
         raise HTTPException(
@@ -336,7 +343,8 @@ async def get_sample_image_info(
     
     return {
         "sample_id": sample_id,
-        "object_path": sample.image_path,
+        "image_id": sample.image.id,
+        "object_path": image_path,
         "size_bytes": file_info.get("size"),
         "size_kb": round(file_info.get("size", 0) / 1024, 2),
         "size_mb": round(file_info.get("size", 0) / (1024 * 1024), 2),
@@ -369,16 +377,18 @@ async def get_batch_presigned_urls(
             Sample.user_id == current_user.id
         ).first()
         
-        if sample and sample.image_path and minio_client.file_exists(sample.image_path):
-            image_url = minio_client.get_file_url(sample.image_path, expires)
+        if sample and sample.image and minio_client.file_exists(sample.image.image_path):
+            image_url = minio_client.get_file_url(sample.image.image_path, expires)
             result.append({
                 "sample_id": sample_id,
+                "image_id": sample.image.id,
                 "image_url": image_url,
                 "exists": True
             })
         else:
             result.append({
                 "sample_id": sample_id,
+                "image_id": None,
                 "image_url": None,
                 "exists": False
             })
@@ -400,6 +410,7 @@ async def check_image_exists(
     Проверка существования изображения в MinIO
     """
     object_path = None
+    image_model = None
     
     # Пытаемся найти семпл
     sample = db.query(Sample).filter(
@@ -407,9 +418,16 @@ async def check_image_exists(
         Sample.user_id == current_user.id
     ).first()
     
-    if sample:
-        object_path = get_object_path_from_sample(sample)
+    if sample and sample.image:
+        object_path = sample.image.image_path
+        image_model = sample.image
+    else:
+        # Пытаемся найти напрямую в таблице Image
+        image_model = db.query(ImageModel).filter(ImageModel.id == image_id).first()
+        if image_model:
+            object_path = image_model.image_path
     
+    # Если не нашли через БД, ищем по паттерну (старые данные)
     if not object_path:
         object_path = find_object_by_pattern(current_user.id, image_id)
     
@@ -426,3 +444,44 @@ async def check_image_exists(
         "exists": False,
         "image_id": image_id
     }
+
+
+@router.get("/by-image/{image_id}")
+async def get_image_by_id(
+    image_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Получение изображения напрямую по ID из таблицы images
+    """
+    # Проверяем, что изображение принадлежит пользователю (через семплы)
+    image = db.query(ImageModel).filter(ImageModel.id == image_id).first()
+    
+    if not image:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Image not found"
+        )
+    
+    # Проверяем, есть ли у пользователя семпл с этим изображением
+    sample = db.query(Sample).filter(
+        Sample.image_id == image_id,
+        Sample.user_id == current_user.id
+    ).first()
+    
+    if not sample:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this image"
+        )
+    
+    if not minio_client.file_exists(image.image_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Image file not found in storage"
+        )
+    
+    # Получаем временную ссылку
+    image_url = minio_client.get_file_url(image.image_path, expires=3600)
+    return RedirectResponse(url=image_url)

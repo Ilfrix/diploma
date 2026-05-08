@@ -68,8 +68,6 @@ class ImageDetector:
             
             # Выполнение инференса
             results = self.model(image, conf=self.confidence, verbose=False)
-            print('infer result')
-            print(results)
             
             # Парсинг результатов
             detections = []

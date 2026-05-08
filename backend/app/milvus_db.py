@@ -144,7 +144,7 @@ class MilvusDatabase:
                     "user_id": metadata.get("user_id", ""),
                     "original_id": metadata.get("original_id", ""),
                     "bbox": metadata.get("bbox", "[]"),
-                    "class_id": metadata.get("class_id", -1),
+                    "class_id": metadata.get("class_id", '-1'),
                     "confidence": metadata.get("confidence", 0.0),
                     "file_name": metadata.get("file_name", ""),
                     "mime_type": metadata.get("mime_type", ""),
@@ -171,6 +171,7 @@ class MilvusDatabase:
     
     def get_vector(self, vector_id: str) -> Optional[np.ndarray]:
         """Получение вектора по ID"""
+        print('get vector')
         try:
             results = self.collection.query(
                 expr=f'id == "{vector_id}"',
@@ -227,8 +228,11 @@ class MilvusDatabase:
     ) -> List[Tuple[str, float, Dict]]:
         """Поиск похожих векторов"""
         try:
-            query_list = self._prepare_vector(query_vector)
-            
+            # print('query_list type:', type(query_vector))
+            query_list = self._prepare_vector(query_vector[1])
+            # print(type(query_list))
+            # print(type(query_list[0]))
+            # print(type(query_list[1]))
             # Строим фильтр
             filter_parts = []
             if user_id:
@@ -241,6 +245,8 @@ class MilvusDatabase:
                 "metric_type": "COSINE",
                 "params": {"nprobe": 10}
             }
+            # print('before search')
+            # print(type(query_list), len(query_list), type(query_list[0]))
             
             # Поиск
             results = self.collection.search(
@@ -252,10 +258,16 @@ class MilvusDatabase:
                 output_fields=["sample_id", "crop_index", "user_id", "bbox", 
                               "class_id", "confidence", "file_name"]
             )
-            
+            print('after search')
+            print(len(results))
+            print(results)
+            print('threshold')
+            print(threshold)
+            print('-'*100)
             formatted_results = []
             for hits in results:
                 for hit in hits:
+                    print(hit.score)
                     if hit.score >= threshold:
                         metadata = {
                             "sample_id": hit.entity.get("sample_id"),
