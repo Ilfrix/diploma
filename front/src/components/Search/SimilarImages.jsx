@@ -41,8 +41,7 @@ const SimilarImages = ({ sampleId, sampleName, similarImages: externalImages, ti
                   sampleId={image.sample_id}
                   alt={image.name}
                   className="w-full h-48 object-cover"
-                  size={200}
-                  thumbnail={true}
+                  thumbnail={false}
                 />
                 <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-full text-sm">
                   {Math.round(image.similarity_score * 100)}%
@@ -95,8 +94,8 @@ const SimilarImages = ({ sampleId, sampleName, similarImages: externalImages, ti
                 sampleId={image.sample_id}
                 alt={image.name}
                 className="w-full h-48 object-cover"
-                size={200}
-                thumbnail={true}
+                size={400}
+                thumbnail={false}
               />
               <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-full text-sm">
                 {Math.round(image.similarity_score * 100)}%

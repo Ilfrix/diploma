@@ -69,7 +69,7 @@ class MilvusDatabase:
                     
                     # Информация о детекции
                     FieldSchema(name="bbox", dtype=DataType.VARCHAR, max_length=500),
-                    FieldSchema(name="class_id", dtype=DataType.VARCHAR, max_length=100),
+                    FieldSchema(name="class_name", dtype=DataType.VARCHAR, max_length=100),
                     FieldSchema(name="confidence", dtype=DataType.FLOAT),
                     
                     # Метаданные
@@ -144,7 +144,7 @@ class MilvusDatabase:
                     "user_id": metadata.get("user_id", ""),
                     "original_id": metadata.get("original_id", ""),
                     "bbox": metadata.get("bbox", "[]"),
-                    "class_id": metadata.get("class_id", '-1'),
+                    "class_name": metadata.get("class_name", '-1'),
                     "confidence": metadata.get("confidence", 0.0),
                     "file_name": metadata.get("file_name", ""),
                     "mime_type": metadata.get("mime_type", ""),
@@ -171,7 +171,6 @@ class MilvusDatabase:
     
     def get_vector(self, vector_id: str) -> Optional[np.ndarray]:
         """Получение вектора по ID"""
-        print('get vector')
         try:
             results = self.collection.query(
                 expr=f'id == "{vector_id}"',
@@ -209,7 +208,7 @@ class MilvusDatabase:
             results = self.collection.query(
                 expr=f'id == "{vector_id}"',
                 output_fields=["sample_id", "crop_index", "user_id", "original_id", 
-                              "bbox", "class_id", "confidence", "file_name", "processed_at"]
+                              "bbox", "class_name", "confidence", "file_name", "processed_at"]
             )
             if results:
                 result = results[0]
@@ -228,11 +227,7 @@ class MilvusDatabase:
     ) -> List[Tuple[str, float, Dict]]:
         """Поиск похожих векторов"""
         try:
-            # print('query_list type:', type(query_vector))
-            query_list = self._prepare_vector(query_vector[1])
-            # print(type(query_list))
-            # print(type(query_list[0]))
-            # print(type(query_list[1]))
+            query_list = self._prepare_vector(query_vector)
             # Строим фильтр
             filter_parts = []
             if user_id:
@@ -245,8 +240,6 @@ class MilvusDatabase:
                 "metric_type": "COSINE",
                 "params": {"nprobe": 10}
             }
-            # print('before search')
-            # print(type(query_list), len(query_list), type(query_list[0]))
             
             # Поиск
             results = self.collection.search(
@@ -256,11 +249,8 @@ class MilvusDatabase:
                 limit=k,
                 expr=filter_expr,
                 output_fields=["sample_id", "crop_index", "user_id", "bbox", 
-                              "class_id", "confidence", "file_name"]
+                              "class_name", "confidence", "file_name"]
             )
-            print('after search')
-            print(len(results))
-            print(results)
             print('threshold')
             print(threshold)
             print('-'*100)
@@ -274,7 +264,7 @@ class MilvusDatabase:
                             "crop_index": hit.entity.get("crop_index"),
                             "user_id": hit.entity.get("user_id"),
                             "bbox": hit.entity.get("bbox"),
-                            "class_id": hit.entity.get("class_id"),
+                            "class_name": hit.entity.get("class_name"),
                             "confidence": hit.entity.get("confidence"),
                             "file_name": hit.entity.get("file_name")
                         }

@@ -209,8 +209,7 @@ class MLProcessingWorker:
             
             # Сохраняем эмбеддинг в Milvus
             milvus_id = f"crop_{sample.image_id}_{idx}"
-            print('milvus', milvus_id)
-            print(type(embedding))
+            print('milvus_id', milvus_id)
             print('sample_id', sample.id)
             print('user_id', sample.user_id)
             print('image_id', sample.image_id)

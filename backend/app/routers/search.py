@@ -29,7 +29,8 @@ async def get_similar(
     db: Session = Depends(get_db)
 ):
     """Найти ближайшие изображения к эталону"""
-    
+    print('sample_id', sample_id)
+
     # Получение эталона
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
@@ -52,7 +53,7 @@ async def get_similar(
     crops_with_vectors = db.query(Crop, VectorModel).join(
         VectorModel, Crop.id == VectorModel.crop_id
     ).filter(
-        Crop.image_id == sample.image_id
+        Crop.image_id == sample.image_id,
     ).all()
     
     if not crops_with_vectors:
@@ -61,6 +62,7 @@ async def get_similar(
             detail="No crop vectors found for this sample"
         )
     
+    current_crop_ids = [vector.milvus_id for _, vector in crops_with_vectors]
     # Собираем результаты от всех кропов
     all_similar = {}
     
@@ -69,13 +71,17 @@ async def get_similar(
         embedding = vector_db.get_vector(vector.milvus_id)
         if embedding is None:
             continue
-        
+        print(embedding)
+
         # Поиск похожих векторов
+        print('before')
         similar_vectors = vector_db.search_similar(
             embedding, 
             k=limit + 1,
             threshold=threshold
         )
+        print('after')
+        print(similar_vectors)
         
         # Агрегируем результаты
         for vec_id, score, metadata in similar_vectors:
@@ -83,7 +89,7 @@ async def get_similar(
                 continue
                 
             similar_sample_id = metadata.get("sample_id")
-            if not similar_sample_id:
+            if not similar_sample_id or similar_sample_id == sample_id:
                 continue
             
             # Сохраняем максимальную схожесть для каждого сэмпла
@@ -110,6 +116,7 @@ async def get_similar(
                 image_id=similar_sample.image_id,
                 image_url=None  # Можно добавить генерацию временной ссылки
             ))
+    print('end of get_similar')
     
     return SimilarResponse(
         query_sample_id=sample.id,
