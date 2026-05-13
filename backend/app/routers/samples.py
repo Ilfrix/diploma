@@ -3,8 +3,9 @@ from typing import Optional, List
 from datetime import datetime
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.database import get_db
 from app.models import User, Sample, SampleStatus, ImageModel
@@ -30,7 +31,6 @@ async def create_new_sample(
     name: str = Form(...),
     description: Optional[str] = Form(None),
     image: UploadFile = File(...),
-    background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -45,16 +45,12 @@ async def create_new_sample(
     
     # Чтение содержимого
     image_bytes = await image.read()
-    
-    # Вычисляем хэш изображения
     image_hash = hash_image(image_bytes)
     
-    # Проверяем, существует ли уже такое изображение в БД
     existing_image = db.query(ImageModel).filter(
         ImageModel.image_hash == image_hash
     ).first()
     
-    # Проверяем, есть ли уже такой сэмпл у пользователя с этим изображением
     if existing_image:
         existing_sample = db.query(Sample).filter(
             Sample.user_id == current_user.id,
@@ -67,7 +63,6 @@ async def create_new_sample(
                 detail=f"Duplicate image already exists as sample: {existing_sample.id}"
             )
     
-    # Создаем запись сэмпла
     sample = Sample(
         user_id=current_user.id,
         name=name,
@@ -80,7 +75,6 @@ async def create_new_sample(
     db.refresh(sample)
     
     try:
-        # Загружаем изображение в MinIO
         file_extension = os.path.splitext(image.filename)[1]
         object_path = f"samples/{current_user.id}/{sample.id}{file_extension}"
         
@@ -89,8 +83,7 @@ async def create_new_sample(
             object_path=object_path,
             content_type=image.content_type
         )
-        
-        # Если изображение уже существует в БД, используем его
+
         if existing_image:
             image_model = existing_image
         else:
@@ -103,11 +96,9 @@ async def create_new_sample(
             db.add(image_model)
             db.flush()
         
-        # Связываем сэмпл с изображением
         sample.image_id = image_model.id
         sample.status = SampleStatus.PROCESSING
         db.commit()
-        
         # Отправка в Kafka для асинхронной обработки
         await kafka_producer.send_image_for_processing(
             image_id=sample.id,
@@ -406,10 +397,9 @@ async def get_samples_stats(
     db: Session = Depends(get_db)
 ):
     """Получить статистику по сэмплам пользователя"""
-    
     stats = db.query(
         Sample.status,
-        db.func.count(Sample.id)
+        func.count(Sample.id)
     ).filter(
         Sample.user_id == current_user.id
     ).group_by(Sample.status).all()

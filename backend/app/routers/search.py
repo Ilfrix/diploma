@@ -62,7 +62,6 @@ async def get_similar(
             detail="No crop vectors found for this sample"
         )
     
-    current_crop_ids = [vector.milvus_id for _, vector in crops_with_vectors]
     # Собираем результаты от всех кропов
     all_similar = {}
     
@@ -71,17 +70,13 @@ async def get_similar(
         embedding = vector_db.get_vector(vector.milvus_id)
         if embedding is None:
             continue
-        print(embedding)
 
         # Поиск похожих векторов
-        print('before')
         similar_vectors = vector_db.search_similar(
             embedding, 
             k=limit + 1,
             threshold=threshold
         )
-        print('after')
-        print(similar_vectors)
         
         # Агрегируем результаты
         for vec_id, score, metadata in similar_vectors:
