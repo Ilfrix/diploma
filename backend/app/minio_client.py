@@ -34,11 +34,6 @@ class MinIOClient:
         except Exception as e:
             print(f"Failed to initialize MinIO client: {e}")
             self.client = None
-        print('client')
-        print(config.MINIO_ENDPOINT,config.MINIO_ACCESS_KEY,config.MINIO_SECRET_KEY)
-        print(self.client)
-        print(config.KAFKA_CONSUMER_GROUP)
-        print('-'*100)
     
     def upload_file(
         self, 
@@ -57,8 +52,6 @@ class MinIOClient:
         Returns:
             str: Путь к загруженному объекту
         """
-        print(self.client)
-        print('upload file')
         if not self.client:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -316,5 +309,4 @@ class MinIOClient:
             }
 
 
-# Создаем глобальный экземпляр клиента
 minio_client = MinIOClient()
