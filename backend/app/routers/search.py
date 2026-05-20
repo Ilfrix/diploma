@@ -111,7 +111,6 @@ async def get_similar(
                 image_id=similar_sample.image_id,
                 image_url=None  # Можно добавить генерацию временной ссылки
             ))
-    print('end of get_similar')
     
     return SimilarResponse(
         query_sample_id=sample.id,
