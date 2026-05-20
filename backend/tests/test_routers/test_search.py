@@ -8,8 +8,7 @@ class TestSearchRouter:
     
     def test_search_similar_by_sample(self, client, auth_headers, db_session, test_user, mock_minio):
         """Поиск похожих изображений по семплу"""
-        
-        
+
         # Создаем тестовые данные
         image = ImageModel(
             image_path="test/path.jpg",
@@ -65,7 +64,6 @@ class TestSearchRouter:
     
     def test_get_sample_crops(self, client, auth_headers, db_session, test_user, mock_minio):
         """Получение кропов семпла"""
-        from app.models import Sample, ImageModel, Crop
         
         image = ImageModel(
             image_path="test/path.jpg",
@@ -108,7 +106,7 @@ class TestSearchRouter:
         assert len(data) == 3
         assert all("bbox" in crop for crop in data['crops'])
     
-    def test_search_similar_by_image_upload(self, client, auth_headers, test_image_bytes, mock_minio):
+    def test_search_similar_by_image_upload(self, client, auth_headers, test_image_bytes):
         """Поиск по загруженному изображению"""
         with patch('app.routers.search.process_image_with_crops') as mock_process:
             mock_process.return_value = (
@@ -138,7 +136,6 @@ class TestSearchRouter:
     
     def test_get_sample_vectors(self, client, auth_headers, db_session, test_user):
         """Получение информации о векторах семпла"""
-        from app.models import Sample, ImageModel, Crop, Vector
         
         image = ImageModel(
             image_path="test/path.jpg",

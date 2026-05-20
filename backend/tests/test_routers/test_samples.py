@@ -7,7 +7,7 @@ from app.models import Sample, SampleStatus, ImageModel
 
 class TestSamplesRouter:
     
-    def test_create_sample_success(self, client, auth_headers, test_user, test_image_bytes, mock_minio, mock_kafka):
+    def test_create_sample_success(self, client, auth_headers, test_image_bytes, mock_minio):
         """Успешное создание семпла"""
         with patch('app.routers.samples.minio_client', mock_minio):
             files = {
