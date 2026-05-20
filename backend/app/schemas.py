@@ -36,7 +36,10 @@ class SampleStatusEnum(str, Enum):
     PROCESSED = "processed"
     FAILED = "failed"
 
-    
+# Forward references для связанных схем
+class ImageResponse(BaseModel):
+    pass
+
 class SampleResponse(BaseModel):
     id: str
     name: str
