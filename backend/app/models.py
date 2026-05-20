@@ -25,8 +25,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-    
-    # Relationships
+
     samples = relationship("Sample", back_populates="user", cascade="all, delete-orphan")
 
 
@@ -40,11 +39,9 @@ class ImageModel(Base):
     mime_type = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     
-    # Relationships
     samples = relationship("Sample", back_populates="image")
     crops = relationship("Crop", back_populates="image", cascade="all, delete-orphan")
-    
-    # Уникальный индекс на хэш (предотвращает дублирование одного и того же изображения)
+
     __table_args__ = (
         UniqueConstraint('image_hash', name='uq_image_hash'),
     )
@@ -63,7 +60,6 @@ class Sample(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
-    # Relationships
     user = relationship("User", back_populates="samples")
     image = relationship("ImageModel", back_populates="samples")
 
@@ -74,21 +70,19 @@ class Crop(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     image_id = Column(String(36), ForeignKey("images.id", ondelete="CASCADE"), nullable=False)
-    crop_index = Column(Integer, nullable=False)  # Порядковый номер кропа в изображении
-    crop_path = Column(String(500), nullable=False)  # Путь к файлу кропа в MinIO
-    bbox_x1 = Column(Float, nullable=False)  # Левая координата bounding box
-    bbox_y1 = Column(Float, nullable=False)  # Верхняя координата bounding box
-    bbox_x2 = Column(Float, nullable=False)  # Правая координата bounding box
-    bbox_y2 = Column(Float, nullable=False)  # Нижняя координата bounding box
-    class_name = Column(String(100), nullable=True)  # Класс объекта
-    confidence = Column(Float, nullable=True)  # Уверенность детекции
+    crop_index = Column(Integer, nullable=False)
+    crop_path = Column(String(500), nullable=False)
+    bbox_x1 = Column(Float, nullable=False)
+    bbox_y1 = Column(Float, nullable=False)
+    bbox_x2 = Column(Float, nullable=False)
+    bbox_y2 = Column(Float, nullable=False)
+    class_name = Column(String(100), nullable=True)
+    confidence = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     
-    # Relationships
     image = relationship("ImageModel", back_populates="crops")
     vector = relationship("Vector", back_populates="crop", uselist=False, cascade="all, delete-orphan")
     
-    # Составной уникальный индекс на (image_id, crop_index)
     __table_args__ = (
         UniqueConstraint('image_id', 'crop_index', name='uq_crops_image_id_crop_index'),
     )
@@ -100,8 +94,7 @@ class Vector(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     crop_id = Column(String(36), ForeignKey("crops.id", ondelete="CASCADE"), nullable=False, unique=True)
-    milvus_id = Column(String(100), unique=True, nullable=False)  # ID вектора в Milvus
+    milvus_id = Column(String(100), unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
-    
-    # Relationships
+
     crop = relationship("Crop", back_populates="vector")
