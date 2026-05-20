@@ -36,10 +36,7 @@ class SampleStatusEnum(str, Enum):
     PROCESSED = "processed"
     FAILED = "failed"
 
-# Forward references для связанных схем
-class ImageResponse(BaseModel):
-    pass
-
+    
 class SampleResponse(BaseModel):
     id: str
     name: str
@@ -92,11 +89,6 @@ class CropResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class CropWithVectorResponse(CropResponse):
-    vector: Optional[VectorResponse] = None
-
-class ImageWithCropsResponse(ImageResponse):
-    crops: List[CropWithVectorResponse] = []
 
 # ========== Search/Similarity schemas ==========
 class SimilarImage(BaseModel):
@@ -112,12 +104,3 @@ class SimilarResponse(BaseModel):
     query_name: str
     similar_images: List[SimilarImage]
     processing_time_ms: Optional[float] = None
-
-# ========== Status schemas ==========
-class ProcessingStatusResponse(BaseModel):
-    sample_id: str
-    status: SampleStatusEnum
-    error_message: Optional[str] = None
-    is_ready: bool
-    image_id: Optional[str] = None
-    crops_processed: Optional[int] = None
