@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import time
 import logging
 import json
 from typing import Dict, Any, List
@@ -166,6 +167,7 @@ class MLProcessingWorker:
     ) -> Dict[str, Any]:
         """Обрабатывает изображение и сохраняет кропы"""
         detector = get_detector()
+        encoder = get_encoder()
         image = Image.open(io.BytesIO(image_bytes))
         
         # Детекция объектов

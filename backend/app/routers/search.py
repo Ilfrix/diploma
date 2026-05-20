@@ -298,7 +298,7 @@ async def search_similar_by_image(
     
     if not embeddings:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCIVABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Could not extract features from image"
         )
     
@@ -308,7 +308,7 @@ async def search_similar_by_image(
     
     if query_embedding is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCIVABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Could not generate embedding for image"
         )
     
@@ -343,7 +343,7 @@ async def search_similar_by_image(
                 image_id=sample.image_id,
                 image_url=None
             ))
-    
+
     return similar_images
 
 

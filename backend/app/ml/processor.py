@@ -1,5 +1,3 @@
-# app/ml/processor.py - добавить функцию для пакетной обработки
-
 import io
 import numpy as np
 from PIL import Image
