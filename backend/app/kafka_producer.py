@@ -66,5 +66,4 @@ class KafkaProducerManager:
         )
         logger.info(f"Image {image_id} sent for processing")
 
-# Глобальный экземпляр
 kafka_producer = KafkaProducerManager(config.KAFKA_BOOTSTRAP_SERVERS)

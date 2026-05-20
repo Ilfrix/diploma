@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Sample, SampleStatus, ImageModel, Crop, Vector
+from app.utils import hash_image
 from app.ml.processor import process_image_with_crops, save_crops_to_database, save_original_image_to_database, get_detector, get_encoder
 
 from app.milvus_db import MilvusDatabase
@@ -59,8 +60,7 @@ class MLProcessingWorker:
                     image_bytes = minio_client.download_file(image_path)
                 else:
                     raise ValueError("No image data or path provided")
-            
-            # Получаем сессию БД
+
             db = SessionLocal()
             
             try:
@@ -102,12 +102,10 @@ class MLProcessingWorker:
                 print(result)
                 print(sample)
                 
-                
                 # Обновляем статус сэмпла на PROCESSED
                 sample.status = SampleStatus.PROCESSED
                 sample.updated_at = datetime.now()
                 db.commit()
-                
                 logger.info(f"Successfully processed sample {sample_id}: {len(result['crops'])} crops saved")
                 
             finally:
@@ -131,7 +129,7 @@ class MLProcessingWorker:
         image_hash: str = None
     ) -> ImageModel:
         """Сохраняет изображение в БД"""
-        from app.utils import hash_image
+        
         
         # Вычисляем хэш если не предоставлен
         if not image_hash:
@@ -144,8 +142,7 @@ class MLProcessingWorker:
         
         if existing_image:
             return existing_image
-        
-        # Создаем новое изображение
+
         image_model = ImageModel(
             id=str(uuid.uuid4()),
             image_path=image_path,
@@ -173,7 +170,7 @@ class MLProcessingWorker:
         # Детекция объектов
         detections = detector.detect(np.array(image)) if detector else {}
         print(detections)
-        # Получаем кропы
+
         crops = []
         if detector and detections.get('boxes'):
             crops = detector.get_crops(image, detections.get('boxes', []))
@@ -186,7 +183,6 @@ class MLProcessingWorker:
         if not embeddings:
             embeddings = [np.random.rand(1280) for _ in range(len(crops))]
         
-        # Сохраняем кропы в MinIO и БД
         saved_crops = []
         milvus_ids = []
         
@@ -209,18 +205,7 @@ class MLProcessingWorker:
                 content_type="image/jpeg"
             )
             
-            # Сохраняем эмбеддинг в Milvus
             milvus_id = f"crop_{sample.image_id}_{idx}"
-            print('milvus_id', milvus_id)
-            print('sample_id', sample.id)
-            print('user_id', sample.user_id)
-            print('image_id', sample.image_id)
-            print('crop_index', idx)
-            print('class_name', class_name)
-            print("confidence", float(confidence))
-            print("bbox", json.dumps(bbox))
-            print('end')
-
             self.vector_db.add_vector(
                 vector_id=milvus_id,
                 vector=embedding.tolist() if hasattr(embedding, 'tolist') else embedding,

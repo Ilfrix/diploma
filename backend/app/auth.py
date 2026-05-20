@@ -12,6 +12,7 @@ from app.database import get_db
 from app.models import User
 from app.schemas import TokenData
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Создание JWT токена"""
     to_encode = data.copy()

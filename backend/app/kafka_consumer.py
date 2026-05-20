@@ -67,7 +67,6 @@ class KafkaConsumerManager:
                 await asyncio.sleep(5)
                 asyncio.create_task(self._consume_loop())
 
-# Глобальный экземпляр
 kafka_consumer = KafkaConsumerManager(
     config.KAFKA_BOOTSTRAP_SERVERS,
     config.KAFKA_CONSUMER_GROUP,

@@ -26,7 +26,6 @@ class ImageDetector:
         """Загрузка модели детекции YOLOv8"""
         print('-'*100)
         try:
-            # Загрузка модели YOLO
             self.model = YOLO(self.model_path)
             logger.info(f"YOLOv8 model loaded from {self.model_path}")
         except Exception as e:
@@ -60,13 +59,6 @@ class ImageDetector:
             }
         
         try:
-            # Конвертация в RGB если изображение в BGR (OpenCV формат)
-            # if len(image.shape) == 3 and image.shape[2] == 3:
-            #     # Предполагаем, что изображение в BGR (как из cv2.imread)
-            #     # YOLO ожидает RGB, но может работать и с BGR
-            #     pass
-            
-            # Выполнение инференса
             results = self.model(image, conf=self.confidence, verbose=False)
             
             # Парсинг результатов
@@ -94,7 +86,6 @@ class ImageDetector:
                             "confidence": float(conf),
                             "class_id": int(cls_id),
                             "class_name": class_name,
-                            # "area": float((x2 - x1) * (y2 - y1))
                         }
                         
                         detections.append(detection)
@@ -127,11 +118,9 @@ class ImageDetector:
         crops = []
         for x1, y1, x2, y2 in bboxes:
             crop = image.crop((x1,y1,x2,y2))
-            # crop.save(f'crop_{x1}.jpg')
             crops.append(crop)
 
         return crops
-
 
     def is_loaded(self) -> bool:
         """Проверка загрузки модели"""
