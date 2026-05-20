@@ -1,10 +1,9 @@
-import json
 import logging
 from typing import List, Tuple, Dict, Any, Optional
 import numpy as np
 from pymilvus import (
     connections, Collection, CollectionSchema, 
-    FieldSchema, DataType, utility, IndexType
+    FieldSchema, DataType, utility
 )
 
 logger = logging.getLogger(__name__)
@@ -25,10 +24,7 @@ class MilvusDatabase:
         self.dim = dim
         self.collection = None
         
-        # Подключаемся к Milvus (только один раз)
         self._connect()
-        
-        # Инициализируем коллекцию
         self._init_collection_with_schema()
     
     def _connect(self):
@@ -51,7 +47,6 @@ class MilvusDatabase:
                 self.collection = Collection(self.collection_name)
                 logger.info(f"Loaded existing collection: {self.collection_name}")
             else:
-                # Определяем схему полей
                 fields = [
                     # Primary key
                     FieldSchema(name="id", dtype=DataType.VARCHAR, max_length=255, is_primary=True),
@@ -251,13 +246,10 @@ class MilvusDatabase:
                 output_fields=["sample_id", "crop_index", "user_id", "bbox", 
                               "class_name", "confidence", "file_name"]
             )
-            print('threshold')
-            print(threshold)
-            print('-'*100)
+
             formatted_results = []
             for hits in results:
                 for hit in hits:
-                    print(hit.score)
                     if hit.score >= threshold:
                         metadata = {
                             "sample_id": hit.entity.get("sample_id"),
