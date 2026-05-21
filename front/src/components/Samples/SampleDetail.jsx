@@ -85,6 +85,11 @@ const SampleDetail = () => {
             <p className="text-gray-500">
               Обновлен: {format(new Date(sample.updated_at), 'dd MMMM yyyy, HH:mm', { locale: ru })}
             </p>
+            {sample.owner_name && (
+              <p className="text-gray-500">
+                Владелец: {sample.owner_name}
+              </p>
+            )}
           </div>
           
           {isOwner && (

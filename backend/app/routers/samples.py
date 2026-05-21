@@ -148,6 +148,9 @@ async def read_sample(
             detail="Sample not found"
         )
     sample.isOwner = current_user.id == sample.user_id
+    sample.owner_name = None
+    if sample.user_id != current_user.id:
+        sample.owner_name = db.query(User).filter(User.id == sample.user_id).first().username
     
     return sample
 
