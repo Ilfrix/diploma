@@ -51,7 +51,7 @@ def process_image_with_crops(
     crops = []
     if detector and detections.get('boxes'):
         crops = detector.get_crops(image, detections.get('boxes', []))
-    
+
     # Извлечение эмбеддингов для каждого кропа
     embeddings = []
     if encoder and crops:
@@ -77,7 +77,6 @@ def process_image_with_crops(
             "confidence": confidence,
             "embedding": embedding
         })
-    
     return embeddings, detections, crops_data
 
 

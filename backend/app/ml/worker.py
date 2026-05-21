@@ -20,6 +20,7 @@ from app.ml.processor import process_image_with_crops, save_crops_to_database, s
 from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
 from app.config import config
+from app.utils import ColorExtractor
 
 logger = logging.getLogger(__name__)
 detector = get_detector()
@@ -168,18 +169,22 @@ class MLProcessingWorker:
         image = Image.open(io.BytesIO(image_bytes))
         
         # Детекция объектов
+        print('before detector')
         detections = detector.detect(np.array(image)) if detector else {}
+        print('detection end')
         print(detections)
 
         crops = []
+        print('before')
         if detector and detections.get('boxes'):
             crops = detector.get_crops(image, detections.get('boxes', []))
-        
+        print('get_crop')
         # Извлечение эмбеддингов для каждого кропа
         embeddings = []
+        print('first point')
         if encoder and crops:
             embeddings = encoder.encode(crops)
-        
+        print('second point')
         if not embeddings:
             embeddings = [np.random.rand(1280) for _ in range(len(crops))]
         
@@ -221,12 +226,15 @@ class MLProcessingWorker:
             )
             print('-'*100)
             milvus_ids.append(milvus_id)
+            color_val = ColorExtractor.get_dominant_color(crop_bytes)
+            color_name = ColorExtractor.color_to_name(color_val)
             
             # Создаем запись в таблице crops
             crop = Crop(
                 id=str(uuid.uuid4()),
                 image_id=sample.image_id,
                 crop_index=idx,
+                color_name=color_name,
                 crop_path=crop_path,
                 bbox_x1=float(bbox[0]),
                 bbox_y1=float(bbox[1]),

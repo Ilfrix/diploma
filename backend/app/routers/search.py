@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import numpy as np
 
 from app.database import get_db
-from app.models import User, Sample, Crop, Vector as VectorModel
+from app.models import User, Sample, ImageModel, Crop, Vector as VectorModel
 from app.schemas import SimilarImage, SimilarResponse, SampleResponse, CropResponse
 from app.auth import get_current_user
 from app.ml.processor import process_image_with_crops
@@ -22,6 +22,7 @@ def set_vector_db(db):
 @router.get("/samples/{sample_id}/similar", response_model=SimilarResponse)
 async def get_similar(
     sample_id: str,
+    color: Optional[str] = None,
     limit: int = 10,
     threshold: float = 0.7,
     use_all_crops: bool = False,  # Если True - ищем по всем кропам, если False - по первому
@@ -93,7 +94,25 @@ async def get_similar(
                     "score": score,
                     "metadata": metadata
                 }
-    
+
+    if color:
+        # Получаем цвета кропов для каждого найденного сэмпла
+        sample_colors = db.query(
+            Sample.id,
+            Crop.color_name
+        ).join(ImageModel, Sample.image_id == ImageModel.id)\
+         .join(Crop, ImageModel.id == Crop.image_id)\
+         .filter(Sample.id.in_(all_similar.keys()))\
+         .all()
+        
+        # Оставляем только сэмплы, у которых есть кроп нужного цвета
+        valid_sample_ids = {sample_id for sample_id, crop_color in sample_colors 
+                           if crop_color == color}
+        
+        # Фильтруем all_similar
+        all_similar = {sid: data for sid, data in all_similar.items() 
+                      if sid in valid_sample_ids}
+
     # Формируем ответ
     similar_images = []
     for sample_id, data in sorted(all_similar.items(), key=lambda x: x[1]["score"], reverse=True)[:limit]:
@@ -268,7 +287,7 @@ async def search_similar_by_crop(
     return similar_images
 
 
-@router.post("/search/similar", response_model=List[SimilarImage])
+@router.post("/search/similar", response_model=List[Optional[SimilarImage]])
 async def search_similar_by_image(
     image: UploadFile = File(...),
     limit: int = 10,
@@ -294,22 +313,15 @@ async def search_similar_by_image(
         db=None,  # Не сохраняем в БД
         image_id=None
     )
-    
     if not embeddings:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="Could not extract features from image"
-        )
-    
+        return []
+
     # Ищем в векторной БД (используем первый эмбеддинг или усредняем все)
     # Для простоты используем первый кроп
     query_embedding = embeddings[0] if embeddings else None
     
     if query_embedding is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="Could not generate embedding for image"
-        )
+        return []
     
     # Поиск в векторной БД
     similar_vectors = vector_db.search_similar(

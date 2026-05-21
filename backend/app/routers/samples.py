@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.database import get_db
-from app.models import User, Sample, SampleStatus, ImageModel
-from app.schemas import SampleCreate, SampleUpdate, SampleResponse
+from app.models import User, Sample, SampleStatus, ImageModel, Vector
+from app.schemas import SampleUpdate, SampleResponse
 from app.auth import get_current_user
 from app.utils import hash_image
 from app.config import config
@@ -332,6 +332,7 @@ async def delete_sample(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    from main import vector_db
     """Удалить эталон"""
     
     sample = db.query(Sample).filter(
@@ -351,7 +352,11 @@ async def delete_sample(
     # Удаляем сэмпл
     db.delete(sample)
     db.commit()
-    
+
+    if vector_db:
+        vector_db.delete_by_sample_id(sample.id)
+    else:
+        print('None '*100)
     # Проверяем, есть ли другие сэмплы, использующие это изображение
     if image_id:
         other_samples = db.query(Sample).filter(Sample.image_id == image_id).first()
@@ -366,6 +371,7 @@ async def delete_sample(
                 
                 # Удаляем оригинальный файл из MinIO
                 minio_client.delete_file(image.image_path)
+
                 
                 # Удаляем изображение из БД (каскадно удалятся кропы и векторы)
                 db.delete(image)
