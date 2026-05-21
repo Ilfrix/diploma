@@ -137,10 +137,9 @@ async def read_sample(
     db: Session = Depends(get_db)
 ):
     """Прочитать информацию об эталоне"""
-    
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
-        Sample.user_id == current_user.id
+        # Sample.user_id == current_user.id
     ).first()
     
     if not sample:
@@ -148,6 +147,7 @@ async def read_sample(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Sample not found"
         )
+    sample.isOwner = current_user.id == sample.user_id
     
     return sample
 

@@ -223,12 +223,6 @@ class MilvusDatabase:
         """Поиск похожих векторов"""
         try:
             query_list = self._prepare_vector(query_vector)
-            # Строим фильтр
-            filter_parts = []
-            if user_id:
-                filter_parts.append(f'user_id == "{user_id}"')
-            
-            filter_expr = " and ".join(filter_parts) if filter_parts else None
             
             # Параметры поиска
             search_params = {
@@ -242,7 +236,6 @@ class MilvusDatabase:
                 anns_field="vector",
                 param=search_params,
                 limit=k,
-                expr=filter_expr,
                 output_fields=["sample_id", "crop_index", "user_id", "bbox", 
                               "class_name", "confidence", "file_name"]
             )

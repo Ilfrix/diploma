@@ -153,7 +153,7 @@ async def get_sample_image(
     """
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
-        Sample.user_id == current_user.id
+        # Sample.user_id == current_user.id
     ).first()
     
     if not sample:

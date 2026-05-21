@@ -28,6 +28,9 @@ const SampleForm = () => {
     { enabled: isEditing }
   );
 
+  const isOwner = sample && sample.isOwner;
+  const canModify = isOwner;
+
   useEffect(() => {
     if (sample) {
       setFormData({
@@ -91,6 +94,10 @@ const SampleForm = () => {
     }
     
     if (isEditing) {
+        if (!canModify) {
+          toast.error('У вас нет прав на редактирование этого эталона');
+          return;
+      }
       await updateMutation.mutateAsync({ id, data: formData });
     } else {
       const formDataObj = new FormData();

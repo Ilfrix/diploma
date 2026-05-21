@@ -34,7 +34,7 @@ async def get_similar(
     # Получение эталона
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
-        Sample.user_id == current_user.id
+        # Sample.user_id == current_user.id
     ).first()
     
     if not sample:
@@ -99,7 +99,7 @@ async def get_similar(
     for sample_id, data in sorted(all_similar.items(), key=lambda x: x[1]["score"], reverse=True)[:limit]:
         similar_sample = db.query(Sample).filter(
             Sample.id == sample_id,
-            Sample.user_id == current_user.id
+            # Sample.user_id == current_user.id
         ).first()
         
         if similar_sample and similar_sample.image:
@@ -329,7 +329,7 @@ async def search_similar_by_image(
         
         sample = db.query(Sample).filter(
             Sample.id == sample_id,
-            Sample.user_id == current_user.id
+            # Sample.user_id == current_user.id
         ).first()
         
         if sample and sample.image:

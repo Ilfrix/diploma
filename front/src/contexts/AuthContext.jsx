@@ -38,7 +38,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (username, password) => {
     const response = await authService.login(username, password);
-    setUser({ username });
+    setUser({
+      username
+    });
     setToken(localStorage.getItem(AUTH_CONFIG.TOKEN_KEY));
     // Очищаем кэш после логина
     clearUserCache();
@@ -47,7 +49,9 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (username, email, password) => {
     const response = await authService.register(username, email, password);
-    setUser({ username, email });
+    setUser({
+      username, email
+    });
     setToken(localStorage.getItem(AUTH_CONFIG.TOKEN_KEY));
     // Очищаем кэш после регистрации
     clearUserCache();

@@ -46,6 +46,7 @@ class SampleResponse(BaseModel):
     description: Optional[str]
     status: SampleStatusEnum
     error_message: Optional[str] = None
+    isOwner: Optional[bool] = False
     created_at: datetime
     updated_at: datetime
     image: Optional['ImageResponse'] = None

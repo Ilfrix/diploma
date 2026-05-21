@@ -1,4 +1,3 @@
-// src/components/Samples/SampleDetail.jsx
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +20,8 @@ const SampleDetail = () => {
     () => samplesService.getById(id)
   );
 
+  const isOwner = sample && sample.isOwner;
+
   const deleteMutation = useMutation(
     () => samplesService.delete(id),
     {
@@ -36,6 +37,11 @@ const SampleDetail = () => {
   );
 
   const handleDelete = () => {
+      if (!isOwner) {
+      toast.error('У вас нет прав на удаление этого эталона');
+      return;
+    }
+  
     if (window.confirm('Вы уверены, что хотите удалить этот эталон?')) {
       deleteMutation.mutate();
     }
@@ -81,6 +87,7 @@ const SampleDetail = () => {
             </p>
           </div>
           
+          {isOwner && (
           <div className="flex space-x-4 pt-4">
             <Link
               to={`/samples/${sample.id}/edit`}
@@ -98,6 +105,18 @@ const SampleDetail = () => {
               {deleteMutation.isLoading ? 'Удаление...' : 'Удалить'}
             </button>
           </div>
+          )}
+
+          {/* Сообщение для невладельцев */}
+          {!isOwner && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-blue-700">
+                🔒 Этот эталон создан другим пользователем. Вы можете просматривать его, 
+                но не можете редактировать или удалять.
+              </p>
+            </div>
+          )}
+
         </div>
       </div>
       
