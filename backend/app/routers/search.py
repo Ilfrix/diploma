@@ -290,6 +290,7 @@ async def search_similar_by_crop(
 @router.post("/search/similar", response_model=List[Optional[SimilarImage]])
 async def search_similar_by_image(
     image: UploadFile = File(...),
+    color: Optional[str] = None,
     limit: int = 10,
     threshold: float = 0.7,
     current_user: User = Depends(get_current_user),
@@ -304,6 +305,7 @@ async def search_similar_by_image(
             detail="File must be an image"
         )
     
+    
     # Обработка изображения
     image_bytes = await image.read()
     
@@ -316,47 +318,94 @@ async def search_similar_by_image(
     if not embeddings:
         return []
 
-    # Ищем в векторной БД (используем первый эмбеддинг или усредняем все)
-    # Для простоты используем первый кроп
+    # Ищем в векторной БД (используем первый эмбеддинг)
     query_embedding = embeddings[0] if embeddings else None
     
     if query_embedding is None:
         return []
     
-    # Поиск в векторной БД
+    # Поиск в векторной БД (запрашиваем больше результатов для фильтрации)
+    search_limit = limit * 3 if color else limit  # Если фильтруем по цвету, берем больше
     similar_vectors = vector_db.search_similar(
         query_embedding, 
-        k=limit, 
+        k=search_limit, 
         threshold=threshold
     )
     
-    # Формирование ответа
-    similar_images = []
-    seen_samples = set()
-    
+    # Получаем ID найденных сэмплов
+    found_sample_ids = []
+    vec_metadata_map = {}
     for vec_id, score, metadata in similar_vectors:
         sample_id = metadata.get("sample_id")
-        if not sample_id or sample_id in seen_samples:
+        if sample_id and sample_id not in found_sample_ids:
+            found_sample_ids.append(sample_id)
+            vec_metadata_map[sample_id] = {"score": score, "metadata": metadata}
+    
+    if not found_sample_ids:
+        return []
+    
+    # Получаем информацию о сэмплах и их цветах
+    query = db.query(
+        Sample.id,
+        Sample.name,
+        Sample.description,
+        Sample.image_id,
+        Sample.user_id,
+        Crop.id.label("crop_id"),
+        Crop.color_name
+    ).join(
+        ImageModel, Sample.image_id == ImageModel.id
+    ).join(
+        Crop, ImageModel.id == Crop.image_id
+    ).filter(
+        Sample.id.in_(found_sample_ids)
+    ).all()
+    
+    # Группируем цвета по сэмплам
+    sample_colors = {}
+    sample_data = {}
+    for row in query:
+        sample_id = row.id
+        if sample_id not in sample_colors:
+            sample_colors[sample_id] = set()
+            sample_data[sample_id] = {
+                "name": row.name,
+                "description": row.description,
+                "image_id": row.image_id,
+                "user_id": row.user_id
+            }
+        if row.color_name:
+            sample_colors[sample_id].add(row.color_name)
+    
+    # Формируем ответ с фильтрацией по цвету
+    similar_images = []
+    for sample_id in found_sample_ids:
+        # Проверяем, есть ли у сэмпла данные
+        if sample_id not in sample_data:
             continue
         
-        sample = db.query(Sample).filter(
-            Sample.id == sample_id,
-            # Sample.user_id == current_user.id
-        ).first()
+        # Фильтрация по цвету
+        if color:
+            sample_color_set = sample_colors.get(sample_id, set())
+            if color not in sample_color_set:
+                continue  # Сэмпл не имеет нужного цвета
         
-        if sample and sample.image:
-            seen_samples.add(sample_id)
-            similar_images.append(SimilarImage(
-                sample_id=sample.id,
-                name=sample.name,
-                description=sample.description,
-                similarity_score=float(score),
-                image_id=sample.image_id,
-                image_url=None
-            ))
-
+        # Добавляем в результаты
+        score = vec_metadata_map[sample_id]["score"]
+        similar_images.append(SimilarImage(
+            sample_id=sample_id,
+            name=sample_data[sample_id]["name"],
+            description=sample_data[sample_id]["description"],
+            similarity_score=float(score),
+            image_id=sample_data[sample_id]["image_id"],
+            image_url=None
+        ))
+        
+        # Ограничиваем количество результатов
+        if len(similar_images) >= limit:
+            break
+    
     return similar_images
-
 
 @router.get("/search/crops/{crop_id}")
 async def get_crop_info(

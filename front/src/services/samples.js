@@ -30,16 +30,22 @@ export const samplesService = {
     return response.data;
   },
 
-  async getSimilar(id, limit = 10, threshold = 0.7) {
-    const response = await api.get(`/samples/${id}/similar`, {
-      params: { limit, threshold },
-    });
+  async getSimilar(id, limit = 10, threshold = 0.7, color = null) {
+    const params = { limit, threshold };
+    if (color) {
+      params.color = color;
+    }
+    const response = await api.get(`/samples/${id}/similar`, { params });
     return response.data;
   },
 
-  async searchByImage(formData, limit = 10, threshold = 0.7) {
+  async searchByImage(formData, limit = 10, threshold = 0.7, color = null) {
+    const params = { limit, threshold };
+    if (color) {
+      params.color = color;
+    }
     const response = await api.post('/search/similar', formData, {
-      params: { limit, threshold },
+      params: params,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
