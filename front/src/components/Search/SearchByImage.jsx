@@ -8,7 +8,7 @@ import { FiUpload, FiSearch, FiFilter } from 'react-icons/fi';
 import { IoColorPalette } from 'react-icons/io5';
 import toast from 'react-hot-toast';
 
-// Цветовая палитра
+// Цветовая палитра (без изменений)
 const COLOR_PALETTE = {
   "red": { name: "Красный", rgb: [255, 0, 0], category: "Основные" },
   "green": { name: "Зеленый", rgb: [0, 255, 0], category: "Основные" },
@@ -47,26 +47,83 @@ const COLOR_PALETTE = {
   "charcoal": { name: "Темно-серый", rgb: [54, 69, 79], category: "Нейтральные" }
 };
 
+// Компонент Tooltip для отображения цвета при наведении
+const ColorNameTooltip = ({ colorName, rgb, isVisible, mousePos }) => {
+  if (!isVisible || !mousePos) return null;
+
+  return (
+    <div
+      className="fixed z-[9999] pointer-events-none"
+      style={{
+        left: `${mousePos.x + 20}px`,
+        top: `${mousePos.y - 50}px`,
+        width: '100px',
+        height: '100px',
+      }}
+    >
+      <div
+        className="rounded-lg shadow-2xl overflow-hidden w-full h-full border border-white/20"
+        style={{ backgroundColor: `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})` }}
+      >
+        <div className="w-full h-full flex flex-col items-center justify-center p-2">
+          <div className="text-xs font-semibold text-center text-white drop-shadow-md leading-tight">
+            {colorName}
+          </div>
+          <div className="text-[10px] text-center text-white/90 font-mono drop-shadow-md mt-1">
+            RGB({rgb[0]}, {rgb[1]}, {rgb[2]})
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Компонент для отображения цвета
 const ColorSwatch = ({ color, rgb, isSelected, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+  const [mousePos, setMousePos] = useState(null);
+
+  const handleMouseMove = (e) => {
+    if (isHovered) {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    }
+  };
+
   return (
     <div
-      className={`relative flex flex-col items-center cursor-pointer transition-all duration-200 ${
-        isSelected ? 'transform scale-105' : ''
-      }`}
+      className="relative flex flex-col items-center cursor-pointer transition-all duration-200"
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={(e) => {
+        setIsHovered(true);
+        setMousePos({ x: e.clientX, y: e.clientY });
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setMousePos(null);
+      }}
     >
+      <ColorNameTooltip
+        colorName={color}
+        rgb={rgb}
+        isVisible={isHovered}
+        mousePos={mousePos}
+      />
+
       <div
         className={`w-10 h-10 rounded-full border-2 transition-all ${
-          isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-gray-400'
+          isSelected
+            ? 'transform scale-105 border-blue-500 ring-2 ring-blue-200'
+            : 'border-gray-300 hover:border-gray-400'
         }`}
         style={{ backgroundColor: `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})` }}
       />
-      <span className={`text-xs mt-1 text-center ${isSelected ? 'text-blue-600 font-medium' : 'text-gray-600'}`}>
+
+      <span
+        className={`text-xs mt-1 text-center cursor-help ${
+          isSelected ? 'text-blue-600 font-medium' : 'text-gray-600'
+        }`}
+      >
         {color}
       </span>
     </div>
@@ -74,7 +131,7 @@ const ColorSwatch = ({ color, rgb, isSelected, onClick }) => {
 };
 
 // Группа цветов по категориям
-const ColorGroup = ({ title, colors, selectedColor, onColorSelect }) => {
+const ColorGroup = ({ title, selectedColor, onColorSelect }) => {
   const groupColors = Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === title);
   
   if (groupColors.length === 0) return null;
@@ -158,6 +215,15 @@ const SearchByImage = () => {
   // Получаем уникальные категории
   const categories = [...new Set(Object.values(COLOR_PALETTE).map(c => c.category))];
 
+  // Получаем данные выбранного цвета
+  const selectedColorData = selectedColor ? COLOR_PALETTE[selectedColor] : null;
+  const selectedColorRgb = selectedColorData?.rgb;
+
+  // Для отладки - проверим в консоли
+  console.log('selectedColor:', selectedColor);
+  console.log('selectedColorData:', selectedColorData);
+  console.log('selectedColorRgb:', selectedColorRgb);
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Поиск по изображению</h1>
@@ -237,12 +303,34 @@ const SearchByImage = () => {
               
               {showColorFilter && (
                 <div className="bg-gray-50 rounded-lg p-3 mb-2">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-gray-500">
-                      {selectedColor 
-                        ? `Выбран: ${COLOR_PALETTE[selectedColor]?.name}` 
-                        : 'Цвет не выбран'}
-                    </span>
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      {selectedColor && selectedColorRgb ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {/* Квадратик с цветом - inline styles для гарантии */}
+                          <div
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              backgroundColor: `rgb(${selectedColorRgb[0]}, ${selectedColorRgb[1]}, ${selectedColorRgb[2]})`,
+                              borderRadius: '6px',
+                              border: selectedColor === 'white' ? '1px solid #ccc' : 'none',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                            }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: '500', fontSize: '14px', color: '#333' }}>
+                              {selectedColorData?.name}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
+                              RGB({selectedColorRgb[0]}, {selectedColorRgb[1]}, {selectedColorRgb[2]})
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">Цвет не выбран</span>
+                      )}
+                    </div>
                     {selectedColor && (
                       <button
                         onClick={() => setSelectedColor(null)}
@@ -265,7 +353,7 @@ const SearchByImage = () => {
                   </div>
                   
                   <p className="text-xs text-gray-400 mt-3 pt-2 border-t">
-                    Выберите цвет для фильтрации результатов поиска
+                    Наведите на название цвета, чтобы увидеть оттенок
                   </p>
                 </div>
               )}
@@ -292,7 +380,7 @@ const SearchByImage = () => {
           {searchResults && (
             <SimilarImages
               similarImages={searchResults}
-              title={`Результаты поиска${selectedColor ? ` (цвет: ${COLOR_PALETTE[selectedColor]?.name})` : ''}`}
+              title={`Результаты поиска${selectedColor ? ` (цвет: ${selectedColorData?.name || selectedColor})` : ''}`}
             />
           )}
         </div>
