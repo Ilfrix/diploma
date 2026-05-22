@@ -4,11 +4,11 @@ import { samplesService } from '../../services/samples';
 import { useDropzone } from 'react-dropzone';
 import SimilarImages from './SimilarImages';
 import Loader from '../Common/Loader';
-import { FiUpload, FiSearch, FiFilter } from 'react-icons/fi';
+import { FiUpload, FiSearch } from 'react-icons/fi';
 import { IoColorPalette } from 'react-icons/io5';
 import toast from 'react-hot-toast';
 
-// Цветовая палитра (без изменений)
+// Цветовая палитра
 const COLOR_PALETTE = {
   "red": { name: "Красный", rgb: [255, 0, 0], category: "Основные" },
   "green": { name: "Зеленый", rgb: [0, 255, 0], category: "Основные" },
@@ -218,11 +218,6 @@ const SearchByImage = () => {
   // Получаем данные выбранного цвета
   const selectedColorData = selectedColor ? COLOR_PALETTE[selectedColor] : null;
   const selectedColorRgb = selectedColorData?.rgb;
-
-  // Для отладки - проверим в консоли
-  console.log('selectedColor:', selectedColor);
-  console.log('selectedColorData:', selectedColorData);
-  console.log('selectedColorRgb:', selectedColorRgb);
 
   return (
     <div>
