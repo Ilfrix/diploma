@@ -8,6 +8,7 @@ from app.models import User, Sample, ImageModel, Crop, Vector as VectorModel
 from app.schemas import SimilarImage, SimilarResponse, SampleResponse, CropResponse
 from app.auth import get_current_user
 from app.ml.processor import process_image_with_crops
+from app.utils import COLOR_NAMES
 
 router = APIRouter(prefix="/api", tags=["search"])
 
@@ -22,7 +23,6 @@ def set_vector_db(db):
 @router.get("/samples/{sample_id}/similar", response_model=SimilarResponse)
 async def get_similar(
     sample_id: str,
-    color: Optional[str] = None,
     limit: int = 10,
     threshold: float = 0.7,
     use_all_crops: bool = False,  # Если True - ищем по всем кропам, если False - по первому
@@ -94,24 +94,6 @@ async def get_similar(
                     "score": score,
                     "metadata": metadata
                 }
-
-    if color:
-        # Получаем цвета кропов для каждого найденного сэмпла
-        sample_colors = db.query(
-            Sample.id,
-            Crop.color_name
-        ).join(ImageModel, Sample.image_id == ImageModel.id)\
-         .join(Crop, ImageModel.id == Crop.image_id)\
-         .filter(Sample.id.in_(all_similar.keys()))\
-         .all()
-        
-        # Оставляем только сэмплы, у которых есть кроп нужного цвета
-        valid_sample_ids = {sample_id for sample_id, crop_color in sample_colors 
-                           if crop_color == color}
-        
-        # Фильтруем all_similar
-        all_similar = {sid: data for sid, data in all_similar.items() 
-                      if sid in valid_sample_ids}
 
     # Формируем ответ
     similar_images = []
@@ -300,8 +282,20 @@ async def search_similar_by_image(
     
     # Валидация файла
     if not image.content_type or not image.content_type.startswith("image/"):
-        return []  # Файл должен быть изображением
+        return []
     
+    # Конвертируем английское название цвета в русское используя COLOR_NAMES
+    russian_color = None
+    if color:
+        # Ищем соответствие (игнорируем регистр)
+        color_lower = color.lower()
+        for eng_name, rus_name in COLOR_NAMES.items():
+            if eng_name.lower() == color_lower:
+                russian_color = rus_name
+                break
+        # Если не нашли, возможно цвет уже пришел на русском
+        if not russian_color:
+            russian_color = color
     
     # Обработка изображения
     image_bytes = await image.read()
@@ -322,7 +316,7 @@ async def search_similar_by_image(
         return []
     
     # Поиск в векторной БД (запрашиваем больше результатов для фильтрации)
-    search_limit = limit * 3 if color else limit  # Если фильтруем по цвету, берем больше
+    search_limit = limit * 3 if russian_color else limit  # Если фильтруем по цвету, берем больше
     similar_vectors = vector_db.search_similar(
         query_embedding, 
         k=search_limit, 
@@ -381,10 +375,10 @@ async def search_similar_by_image(
         if sample_id not in sample_data:
             continue
         
-        # Фильтрация по цвету
-        if color:
+        # Фильтрация по цвету (сравниваем с русским названием)
+        if russian_color:
             sample_color_set = sample_colors.get(sample_id, set())
-            if color not in sample_color_set:
+            if russian_color not in sample_color_set:
                 continue  # Сэмпл не имеет нужного цвета
         
         # Добавляем в результаты

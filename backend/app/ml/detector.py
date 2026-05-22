@@ -8,6 +8,8 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+CLASSES_LIST = ['bench', 'chair', 'couch', 'bed', 'dinning table']
+
 
 class ImageDetector:
     """Класс для детекции объектов на изображении"""
@@ -79,6 +81,8 @@ class ImageDetector:
                     for i, (box, conf, cls_id) in enumerate(zip(boxes_data, confs_data, classes_data)):
                         x1, y1, x2, y2 = box
                         class_name = self.model.names[cls_id]
+                        if class_name not in CLASSES_LIST:
+                            continue
                         
                         detection = {
                             "id": i,

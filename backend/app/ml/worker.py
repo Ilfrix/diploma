@@ -201,7 +201,7 @@ class MLProcessingWorker:
             # Сохраняем кроп в MinIO
             crop_path = f"crops/{sample.image_id}/{idx}.jpg"
             crop_bytes_io = io.BytesIO()
-            crop_image.save(crop_bytes_io, format='JPEG', quality=85)
+            crop_image.save(crop_bytes_io, format='JPEG', quality=95)
             crop_bytes = crop_bytes_io.getvalue()
             
             minio_client.upload_file(
@@ -226,15 +226,18 @@ class MLProcessingWorker:
             )
             print('-'*100)
             milvus_ids.append(milvus_id)
-            color_val = ColorExtractor.get_dominant_color(crop_bytes)
+            # color_val = ColorExtractor.get_dominant_color(crop_bytes)
+            # color_val = ColorExtractor.get_dominant_color_robust(crop_bytes)
+            color_val = ColorExtractor.debug_color_extraction(crop_bytes)
             color_name = ColorExtractor.color_to_name(color_val)
+            russian_color_name = ColorExtractor.name_to_russian(color_name)
             
             # Создаем запись в таблице crops
             crop = Crop(
                 id=str(uuid.uuid4()),
                 image_id=sample.image_id,
                 crop_index=idx,
-                color_name=color_name,
+                color_name=russian_color_name,
                 crop_path=crop_path,
                 bbox_x1=float(bbox[0]),
                 bbox_y1=float(bbox[1]),

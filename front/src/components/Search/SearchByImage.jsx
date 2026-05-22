@@ -10,44 +10,15 @@ import toast from 'react-hot-toast';
 
 // Цветовая палитра
 const COLOR_PALETTE = {
-  "red": { name: "Красный", rgb: [255, 0, 0], category: "Основные" },
-  "green": { name: "Зеленый", rgb: [0, 255, 0], category: "Основные" },
-  "blue": { name: "Синий", rgb: [0, 0, 255], category: "Основные" },
-  "yellow": { name: "Желтый", rgb: [255, 255, 0], category: "Основные" },
-  "purple": { name: "Фиолетовый", rgb: [128, 0, 128], category: "Основные" },
-  "orange": { name: "Оранжевый", rgb: [255, 165, 0], category: "Основные" },
-  "pink": { name: "Розовый", rgb: [255, 192, 203], category: "Пастельные" },
-  "brown": { name: "Коричневый", rgb: [139, 69, 19], category: "Древесные" },
-  "black": { name: "Черный", rgb: [0, 0, 0], category: "Нейтральные" },
-  "white": { name: "Белый", rgb: [255, 255, 255], category: "Нейтральные" },
-  "gray": { name: "Серый", rgb: [128, 128, 128], category: "Нейтральные" },
-  "silver": { name: "Серебристый", rgb: [192, 192, 192], category: "Металлик" },
-  "beige": { name: "Бежевый", rgb: [245, 245, 220], category: "Нейтральные" },
-  "cream": { name: "Кремовый", rgb: [255, 255, 204], category: "Нейтральные" },
-  "ivory": { name: "Слоновая кость", rgb: [255, 255, 240], category: "Нейтральные" },
-  "wenge": { name: "Венге", rgb: [50, 40, 35], category: "Древесные" },
-  "oak": { name: "Дуб", rgb: [160, 120, 80], category: "Древесные" },
-  "walnut": { name: "Орех", rgb: [119, 85, 61], category: "Древесные" },
-  "cherry": { name: "Вишня", rgb: [138, 54, 15], category: "Древесные" },
-  "beech": { name: "Бук", rgb: [196, 160, 116], category: "Древесные" },
-  "ash": { name: "Ясень", rgb: [138, 129, 111], category: "Древесные" },
-  "pine": { name: "Сосна", rgb: [227, 194, 140], category: "Древесные" },
-  "mahogany": { name: "Красное дерево", rgb: [76, 38, 24], category: "Древесные" },
-  "gold": { name: "Золотистый", rgb: [255, 215, 0], category: "Металлик" },
-  "bronze": { name: "Бронзовый", rgb: [205, 127, 50], category: "Металлик" },
-  "copper": { name: "Медный", rgb: [184, 115, 51], category: "Металлик" },
-  "taupe": { name: "Серо-коричневый", rgb: [72, 60, 50], category: "Нейтральные" },
-  "mint": { name: "Мятный", rgb: [152, 255, 152], category: "Пастельные" },
-  "lavender": { name: "Лавандовый", rgb: [230, 230, 250], category: "Пастельные" },
-  "turquoise": { name: "Бирюзовый", rgb: [64, 224, 208], category: "Основные" },
-  "coral": { name: "Коралловый", rgb: [255, 127, 80], category: "Пастельные" },
-  "burgundy": { name: "Бордовый", rgb: [128, 0, 32], category: "Основные" },
-  "olive": { name: "Оливковый", rgb: [128, 128, 0], category: "Основные" },
-  "khaki": { name: "Хаки", rgb: [195, 176, 145], category: "Нейтральные" },
-  "charcoal": { name: "Темно-серый", rgb: [54, 69, 79], category: "Нейтральные" }
+  "red": { name: "Красный", rgb: [180, 40, 40], category: "Основные" },
+  "green": { name: "Зеленый", rgb: [40, 160, 40], category: "Основные" },
+  "blue": { name: "Синий", rgb: [40, 40, 160], category: "Основные" },
+  "black": { name: "Черный", rgb: [10, 10, 10], category: "Нейтральные" },
+  "white": { name: "Белый", rgb: [240, 240, 240], category: "Нейтральные" },
+  "gray": { name: "Серый", rgb: [120, 120, 120], category: "Нейтральные" },
 };
 
-// Компонент Tooltip для отображения цвета при наведении
+// Компонент Tooltip - ИСПРАВЛЕН (убраны лишние отступы и фиксированная высота)
 const ColorNameTooltip = ({ colorName, rgb, isVisible, mousePos }) => {
   if (!isVisible || !mousePos) return null;
 
@@ -56,20 +27,20 @@ const ColorNameTooltip = ({ colorName, rgb, isVisible, mousePos }) => {
       className="fixed z-[9999] pointer-events-none"
       style={{
         left: `${mousePos.x + 20}px`,
-        top: `${mousePos.y - 50}px`,
-        width: '100px',
-        height: '100px',
+        top: `${mousePos.y - 70}px`,
+        width: '150px',
+        height: 'auto', // автоматическая высота
       }}
     >
       <div
-        className="rounded-lg shadow-2xl overflow-hidden w-full h-full border border-white/20"
+        className="rounded-lg shadow-2xl overflow-hidden border border-white/20"
         style={{ backgroundColor: `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})` }}
       >
-        <div className="w-full h-full flex flex-col items-center justify-center p-2">
-          <div className="text-xs font-semibold text-center text-white drop-shadow-md leading-tight">
+        <div className="px-3 py-2">
+          <div className="text-xs font-semibold text-center text-white drop-shadow-md">
             {colorName}
           </div>
-          <div className="text-[10px] text-center text-white/90 font-mono drop-shadow-md mt-1">
+          <div className="text-[10px] text-center text-white/90 font-mono drop-shadow-md mt-0.5">
             RGB({rgb[0]}, {rgb[1]}, {rgb[2]})
           </div>
         </div>
@@ -130,17 +101,17 @@ const ColorSwatch = ({ color, rgb, isSelected, onClick }) => {
   );
 };
 
-// Группа цветов по категориям
-const ColorGroup = ({ title, selectedColor, onColorSelect }) => {
-  const groupColors = Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === title);
-  
-  if (groupColors.length === 0) return null;
+// Отдельная группа цветов для конкретной категории
+const ColorGroup = ({ title, colors, selectedColor, onColorSelect }) => {
+  if (colors.length === 0) return null;
   
   return (
-    <div className="mb-4">
-      <h4 className="text-sm font-medium text-gray-500 mb-2">{title}</h4>
-      <div className="grid grid-cols-6 gap-2">
-        {groupColors.map(([key, data]) => (
+    <div className="mb-6">
+      <h4 className="text-sm font-medium text-gray-500 mb-2 sticky top-0 bg-gray-50 py-1">
+        {title}
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {colors.map(([key, data]) => (
           <ColorSwatch
             key={key}
             color={data.name}
@@ -212,8 +183,18 @@ const SearchByImage = () => {
     setSelectedColor(null);
   };
 
-  // Получаем уникальные категории
-  const categories = [...new Set(Object.values(COLOR_PALETTE).map(c => c.category))];
+  // Подготовка данных для левой колонки
+  const leftColumnData = [
+    { title: "Основные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Основные") },
+    { title: "Пастельные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Пастельные") },
+    { title: "Древесные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Древесные") }
+  ];
+
+  // Подготовка данных для правой колонки
+  const rightColumnData = [
+    { title: "Нейтральные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Нейтральные") },
+    { title: "Металлик", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Металлик") }
+  ];
 
   // Получаем данные выбранного цвета
   const selectedColorData = selectedColor ? COLOR_PALETTE[selectedColor] : null;
@@ -302,11 +283,11 @@ const SearchByImage = () => {
                     <div>
                       {selectedColor && selectedColorRgb ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          {/* Квадратик с цветом - inline styles для гарантии */}
+                          {/* Квадрат с цветом - увеличен до 44px */}
                           <div
                             style={{
-                              width: '32px',
-                              height: '32px',
+                              width: '44px',
+                              height: '44px',
                               backgroundColor: `rgb(${selectedColorRgb[0]}, ${selectedColorRgb[1]}, ${selectedColorRgb[2]})`,
                               borderRadius: '6px',
                               border: selectedColor === 'white' ? '1px solid #ccc' : 'none',
@@ -336,15 +317,30 @@ const SearchByImage = () => {
                     )}
                   </div>
                   
-                  <div className="max-h-80 overflow-y-auto pr-2">
-                    {categories.map(category => (
-                      <ColorGroup
-                        key={category}
-                        title={category}
-                        selectedColor={selectedColor}
-                        onColorSelect={setSelectedColor}
-                      />
-                    ))}
+                  {/* Две колонки */}
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div style={{ flex: 1 }}>
+                      {leftColumnData.map(group => (
+                        <ColorGroup
+                          key={group.title}
+                          title={group.title}
+                          colors={group.colors}
+                          selectedColor={selectedColor}
+                          onColorSelect={setSelectedColor}
+                        />
+                      ))}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      {rightColumnData.map(group => (
+                        <ColorGroup
+                          key={group.title}
+                          title={group.title}
+                          colors={group.colors}
+                          selectedColor={selectedColor}
+                          onColorSelect={setSelectedColor}
+                        />
+                      ))}
+                    </div>
                   </div>
                   
                   <p className="text-xs text-gray-400 mt-3 pt-2 border-t">
