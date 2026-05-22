@@ -300,10 +300,7 @@ async def search_similar_by_image(
     
     # Валидация файла
     if not image.content_type or not image.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
-        )
+        return []  # Файл должен быть изображением
     
     
     # Обработка изображения
