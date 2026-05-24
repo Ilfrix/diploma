@@ -284,7 +284,6 @@ async def search_similar_by_image(
     if not image.content_type or not image.content_type.startswith("image/"):
         return []
     
-    # Конвертируем английское название цвета в русское используя COLOR_NAMES
     russian_color = None
     if color:
         # Ищем соответствие (игнорируем регистр)
@@ -293,7 +292,7 @@ async def search_similar_by_image(
             if eng_name.lower() == color_lower:
                 russian_color = rus_name
                 break
-        # Если не нашли, возможно цвет уже пришел на русском
+
         if not russian_color:
             russian_color = color
     

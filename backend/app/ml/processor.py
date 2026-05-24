@@ -4,6 +4,7 @@ from PIL import Image
 from typing import Tuple, Dict, Any, List, Optional
 from datetime import datetime
 import uuid
+import logging
 
 from sqlalchemy.orm import Session
 
@@ -16,6 +17,9 @@ from app.utils import hash_image
 # Глобальные экземпляры
 detector = None
 encoder = None
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def init_ml_models(detector_model_path: str, encoder_model_path: str):
@@ -44,8 +48,7 @@ def process_image_with_crops(
     
     # Детекция объектов
     detections = detector.detect(np.array(image)) if detector else {}
-    print('detections')
-    print(detections)
+    logger.info(detections)
     
     # Получаем кропы
     crops = []

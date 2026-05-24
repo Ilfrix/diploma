@@ -139,7 +139,32 @@ services:
       milvus:
         condition: service_healthy
     restart: unless-stopped
-    
+  
+  triton:
+    image: nvcr.io/nvidia/tritonserver:23.10-py3
+    container_name: triton_yolo
+    command: tritonserver --model-repository=/models --strict-model-config=false --log-verbose=1
+    volumes:
+      - ./backend/triton_models:/models
+      - ./model_cache:/tmp/triton
+    ports:
+      - "8010:8000"  # HTTP
+      - "8011:8001"  # gRPC
+      - "8012:8002"  # Metrics
+    shm_size: 2gb
+
+    runtime: nvidia
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_VISIBLE_DEVICES=0
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
   kafka-data:
