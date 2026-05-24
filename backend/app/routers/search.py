@@ -2,12 +2,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Query
 from sqlalchemy.orm import Session
 import numpy as np
+import uuid
+from datetime import datetime, timedelta
 
 from app.database import get_db
-from app.models import User, Sample, ImageModel, Crop, Vector as VectorModel
+from app.models import User, Sample, ImageModel, ProcessStatus, Crop, Vector as VectorModel, SearchRequest
 from app.schemas import SimilarImage, SimilarResponse, SampleResponse, CropResponse
 from app.auth import get_current_user
 from app.ml.processor import process_image_with_crops
+from app.kafka_producer import kafka_producer
 from app.utils import COLOR_NAMES
 
 router = APIRouter(prefix="/api", tags=["search"])
@@ -449,4 +452,70 @@ async def get_crop_info(
             "name": sample.name,
             "description": sample.description
         }
+    }
+
+@router.post("/search/async")
+async def search_similar_async(
+    image: UploadFile = File(...),
+    color: Optional[str] = None,
+    limit: int = 10,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    request_id = str(uuid.uuid4())
+    
+    # 1. Сразу сохраняем в БД
+    search_request = SearchRequest(
+        request_id=request_id,
+        user_id=current_user.id,
+        status=ProcessStatus.PENDING.value,
+        created_at=datetime.now(),
+        expires_at=datetime.now() + timedelta(hours=1)
+    )
+    db.add(search_request)
+    db.commit()
+    
+    # 2. Отправляем в Kafka
+    image_bytes = await image.read()
+    await kafka_producer.send_search_request(
+        request_id=request_id,
+        image_bytes=image_bytes,
+        metadata={
+            "user_id": current_user.id,
+            "color": color,
+            "limit": limit
+        }
+    )
+    
+    return {"request_id": request_id, "status": "pending"}
+
+
+@router.get("/search/result/{request_id}")
+async def get_search_result(
+    request_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение результата - данные из БД, не из памяти!"""
+    search_request = db.query(SearchRequest).filter(
+        SearchRequest.request_id == request_id
+    ).first()
+    
+    if not search_request:
+        raise HTTPException(404, "Request not found")
+    
+    if search_request.user_id != current_user.id:
+        raise HTTPException(403, "Access denied")
+    
+    # Проверяем, не истек ли запрос
+    if search_request.expires_at < datetime.now():
+        return {"status": "expired", "request_id": request_id}
+    
+    return {
+        "request_id": request_id,
+        "status": search_request.status,
+        "result": search_request.result,
+        "error": search_request.error_message,
+        "created_at": search_request.created_at,
+        "completed_at": search_request.completed_at
     }

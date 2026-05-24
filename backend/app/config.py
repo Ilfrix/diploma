@@ -19,6 +19,10 @@ class Config:
     KAFKA_RESULT_TOPIC = os.getenv("KAFKA_RESULT_TOPIC", "image-results")
     KAFKA_CONSUMER_GROUP = os.getenv("KAFKA_CONSUMER_GROUP", "ml-processor-group")
 
+    KAFKA_SEARCH_TOPIC = os.getenv("KAFKA_SEARCH_TOPIC", "search-requests")
+    KAFKA_SEARCH_RESULT_TOPIC = os.getenv("KAFKA_SEARCH_RESULT_TOPIC", "search-results")
+    KAFKA_SEARCH_CONSUMER_GROUP = os.getenv("KAFKA_SEARCH_CONSUMER_GROUP", "search-processor-group")
+
     # Milvus
     MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
     MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from app.models import Sample, SampleStatus, ImageModel, Crop, Vector
+from app.models import Sample, ProcessStatus, ImageModel, Crop, Vector
 import numpy as np
 
 
@@ -22,7 +22,7 @@ class TestSearchRouter:
             user_id=test_user.id,
             name="Query Sample",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.flush()
@@ -77,7 +77,7 @@ class TestSearchRouter:
             user_id=test_user.id,
             name="Sample with Crops",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.flush()
@@ -149,7 +149,7 @@ class TestSearchRouter:
             user_id=test_user.id,
             name="Sample with Vectors",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.flush()

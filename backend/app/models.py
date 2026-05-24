@@ -1,14 +1,14 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean, Enum, UniqueConstraint, Float, Integer
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean, Enum, UniqueConstraint, Float, Integer, JSON, Index
 from sqlalchemy.orm import relationship
 import enum
 
 from app.database import Base
 
 
-class SampleStatus(enum.Enum):
+class ProcessStatus(enum.Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     PROCESSED = "processed"
@@ -55,7 +55,7 @@ class Sample(Base):
     image_id = Column(String(36), ForeignKey("images.id", ondelete="SET NULL"), nullable=True)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(SampleStatus), default=SampleStatus.PENDING, nullable=False)
+    status = Column(Enum(ProcessStatus), default=ProcessStatus.PENDING, nullable=False)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
@@ -99,3 +99,24 @@ class Vector(Base):
     created_at = Column(DateTime, default=datetime.now)
 
     crop = relationship("Crop", back_populates="vector")
+
+
+class SearchRequest(Base):
+    __tablename__ = "search_requests"
+    
+    request_id = Column(String(36), primary_key=True)
+    user_id = Column(String(36), nullable=False)
+    status = Column(String(20), nullable=False, default=ProcessStatus.PENDING.value)
+    result = Column(JSON, nullable=True)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    completed_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, default=lambda: datetime.now() + timedelta(hours=1))
+    
+    # Индексы для быстрого поиска
+    __table_args__ = (
+        Index('idx_search_requests_user_id', 'user_id'),
+        Index('idx_search_requests_status', 'status'),
+        Index('idx_search_requests_expires', 'expires_at'),
+    )

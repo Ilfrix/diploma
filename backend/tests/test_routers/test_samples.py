@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, AsyncMock
 from fastapi import UploadFile
 import io
-from app.models import Sample, SampleStatus, ImageModel
+from app.models import Sample, ProcessStatus, ImageModel
 
 
 class TestSamplesRouter:
@@ -83,7 +83,7 @@ class TestSamplesRouter:
             user_id=test_user.id,
             name="Test Sample",
             description="Test Desc",
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -112,7 +112,7 @@ class TestSamplesRouter:
         sample = Sample(
             user_id=test_user2.id,
             name="Other User Sample",
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -131,7 +131,7 @@ class TestSamplesRouter:
             sample = Sample(
                 user_id=test_user.id,
                 name=f"Sample {i}",
-                status=SampleStatus.PROCESSED
+                status=ProcessStatus.PROCESSED
             )
             db_session.add(sample)
         db_session.commit()
@@ -151,12 +151,12 @@ class TestSamplesRouter:
         sample1 = Sample(
             user_id=test_user.id,
             name="Pending Sample",
-            status=SampleStatus.PENDING
+            status=ProcessStatus.PENDING
         )
         sample2 = Sample(
             user_id=test_user.id,
             name="PROCESSED Sample",
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add_all([sample1, sample2])
         db_session.commit()
@@ -175,7 +175,7 @@ class TestSamplesRouter:
         sample = Sample(
             user_id=test_user.id,
             name="Original Name",
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -196,7 +196,7 @@ class TestSamplesRouter:
         sample = Sample(
             user_id=test_user.id,
             name="To Delete",
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -217,10 +217,10 @@ class TestSamplesRouter:
         """Получение статистики по семплам"""
         # Создаем семплы с разными статусами
         samples = [
-            Sample(user_id=test_user.id, name="Sample 1", status=SampleStatus.PROCESSED),
-            Sample(user_id=test_user.id, name="Sample 2", status=SampleStatus.PENDING),
-            Sample(user_id=test_user.id, name="Sample 3", status=SampleStatus.PROCESSED),
-            Sample(user_id=test_user.id, name="Sample 4", status=SampleStatus.FAILED),
+            Sample(user_id=test_user.id, name="Sample 1", status=ProcessStatus.PROCESSED),
+            Sample(user_id=test_user.id, name="Sample 2", status=ProcessStatus.PENDING),
+            Sample(user_id=test_user.id, name="Sample 3", status=ProcessStatus.PROCESSED),
+            Sample(user_id=test_user.id, name="Sample 4", status=ProcessStatus.FAILED),
         ]
         db_session.add_all(samples)
         db_session.commit()

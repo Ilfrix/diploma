@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.database import get_db
-from app.models import User, Sample, SampleStatus, ImageModel, Vector
+from app.models import User, Sample, ProcessStatus, ImageModel, Vector
 from app.schemas import SampleUpdate, SampleResponse
 from app.auth import get_current_user
 from app.utils import hash_image
@@ -67,7 +67,7 @@ async def create_new_sample(
         user_id=current_user.id,
         name=name,
         description=description,
-        status=SampleStatus.PENDING
+        status=ProcessStatus.PENDING
     )
     
     db.add(sample)
@@ -97,7 +97,7 @@ async def create_new_sample(
             db.flush()
         
         sample.image_id = image_model.id
-        sample.status = SampleStatus.PROCESSING
+        sample.status = ProcessStatus.PROCESSING
         db.commit()
         # Отправка в Kafka для асинхронной обработки
         await kafka_producer.send_image_for_processing(
@@ -384,7 +384,7 @@ async def delete_sample(
 async def list_samples(
     skip: int = 0,
     limit: int = 100,
-    status_filter: Optional[SampleStatus] = None,
+    status_filter: Optional[ProcessStatus] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

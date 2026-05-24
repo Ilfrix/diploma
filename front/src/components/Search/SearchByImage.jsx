@@ -5,7 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import SimilarImages from './SimilarImages';
 import Loader from '../Common/Loader';
 import { FiUpload, FiSearch } from 'react-icons/fi';
-import { IoColorPalette } from 'react-icons/io5';
+import { IoColorPalette, IoTimeOutline, IoCheckmarkCircle } from 'react-icons/io5';
 import toast from 'react-hot-toast';
 
 // Цветовая палитра
@@ -18,7 +18,7 @@ const COLOR_PALETTE = {
   "gray": { name: "Серый", rgb: [120, 120, 120], category: "Нейтральные" },
 };
 
-// Компонент Tooltip - ИСПРАВЛЕН (убраны лишние отступы и фиксированная высота)
+// Компонент Tooltip
 const ColorNameTooltip = ({ colorName, rgb, isVisible, mousePos }) => {
   if (!isVisible || !mousePos) return null;
 
@@ -29,7 +29,7 @@ const ColorNameTooltip = ({ colorName, rgb, isVisible, mousePos }) => {
         left: `${mousePos.x + 20}px`,
         top: `${mousePos.y - 70}px`,
         width: '150px',
-        height: 'auto', // автоматическая высота
+        height: 'auto',
       }}
     >
       <div
@@ -101,7 +101,7 @@ const ColorSwatch = ({ color, rgb, isSelected, onClick }) => {
   );
 };
 
-// Отдельная группа цветов для конкретной категории
+// Отдельная группа цветов
 const ColorGroup = ({ title, colors, selectedColor, onColorSelect }) => {
   if (colors.length === 0) return null;
   
@@ -129,6 +129,8 @@ const SearchByImage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
+  const [requestId, setRequestId] = useState(null);
+  const [searchStatus, setSearchStatus] = useState(null);
   const [limit, setLimit] = useState(10);
   const [threshold, setThreshold] = useState(0.7);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -144,14 +146,28 @@ const SearchByImage = () => {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
       setSearchResults(null);
+      setRequestId(null);
+      setSearchStatus(null);
     }
   });
 
-  const searchMutation = useMutation(
-    (formData) => samplesService.searchByImage(formData, limit, threshold, selectedColor),
+  // Асинхронный поиск через Kafka
+  const asyncSearchMutation = useMutation(
+    (formData) => samplesService.searchByImageAsync(formData, limit, threshold, selectedColor, {
+      onStatusChange: ({ status, requestId: reqId }) => {
+        setRequestId(reqId);
+        setSearchStatus(status);
+        if (status === 'queued') {
+          toast.success('Запрос поставлен в очередь');
+        } else if (status === 'processing') {
+          toast('Обработка изображения...', { icon: '⏳' });
+        }
+      }
+    }),
     {
       onSuccess: (data) => {
         setSearchResults(data);
+        setSearchStatus('processed');
         if (data.length === 0) {
           toast(selectedColor ? `Изображений цвета "${COLOR_PALETTE[selectedColor]?.name}" не найдено` : 'Похожих изображений не найдено', 
             { icon: '🔍' });
@@ -160,7 +176,8 @@ const SearchByImage = () => {
         }
       },
       onError: (error) => {
-        toast.error(error.response?.data?.detail || 'Ошибка поиска');
+        toast.error(error.message || 'Ошибка поиска');
+        setSearchStatus('failed');
       }
     }
   );
@@ -171,40 +188,63 @@ const SearchByImage = () => {
       return;
     }
 
+    setSearchResults(null);
+    setRequestId(null);
+    setSearchStatus(null);
+
     const formData = new FormData();
     formData.append('image', imageFile);
-    await searchMutation.mutateAsync(formData);
+    
+    await asyncSearchMutation.mutateAsync(formData);
   };
 
   const handleClear = () => {
     setImageFile(null);
     setImagePreview(null);
     setSearchResults(null);
+    setRequestId(null);
+    setSearchStatus(null);
     setSelectedColor(null);
   };
+
+  const isLoading = asyncSearchMutation.isLoading;
+
+  const getStatusDisplay = () => {
+    if (!searchStatus) return null;
+    
+    switch (searchStatus) {
+      case 'queued':
+        return { text: 'В очереди...', icon: <IoTimeOutline className="w-4 h-4" />, color: 'text-yellow-600' };
+      case 'processing':
+        return { text: 'Обработка...', icon: <Loader size="small" />, color: 'text-blue-600' };
+      case 'processed':
+        return { text: 'Готово!', icon: <IoCheckmarkCircle className="w-4 h-4" />, color: 'text-green-600' };
+      case 'failed':
+        return { text: 'Ошибка', icon: null, color: 'text-red-600' };
+      default:
+        return null;
+    }
+  };
+
+  const statusDisplay = getStatusDisplay();
 
   // Подготовка данных для левой колонки
   const leftColumnData = [
     { title: "Основные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Основные") },
-    { title: "Пастельные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Пастельные") },
-    { title: "Древесные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Древесные") }
   ];
 
-  // Подготовка данных для правой колонки
   const rightColumnData = [
     { title: "Нейтральные", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Нейтральные") },
-    { title: "Металлик", colors: Object.entries(COLOR_PALETTE).filter(([_, data]) => data.category === "Металлик") }
   ];
 
-  // Получаем данные выбранного цвета
   const selectedColorData = selectedColor ? COLOR_PALETTE[selectedColor] : null;
   const selectedColorRgb = selectedColorData?.rgb;
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Поиск по изображению</h1>
-      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Левая колонка - форма загрузки */}
         <div className="card p-6">
           <h2 className="text-xl font-semibold mb-4">Загрузите изображение</h2>
           
@@ -283,7 +323,6 @@ const SearchByImage = () => {
                     <div>
                       {selectedColor && selectedColorRgb ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          {/* Квадрат с цветом - увеличен до 44px */}
                           <div
                             style={{
                               width: '44px',
@@ -352,27 +391,59 @@ const SearchByImage = () => {
             
             <button
               onClick={handleSearch}
-              disabled={!imageFile || searchMutation.isLoading}
-              className="btn-primary w-full inline-flex items-center justify-center"
+              disabled={!imageFile || isLoading}
+              className="btn-primary w-full inline-flex items-center justify-center gap-2"
             >
-              {searchMutation.isLoading ? (
-                <Loader size="small" />
+              {isLoading ? (
+                <>
+                  <Loader size="small" />
+                  <span>Отправка...</span>
+                </>
               ) : (
                 <>
-                  <FiSearch className="mr-2" />
+                  <FiSearch />
                   Найти похожие
                 </>
               )}
             </button>
+            
+            {/* Индикатор статуса */}
+            {statusDisplay && (
+              <div className={`mt-3 p-2 rounded-lg text-center ${
+                searchStatus === 'processed' ? 'bg-green-50' : 'bg-blue-50'
+              }`}>
+                <div className={`flex items-center justify-center gap-2 ${statusDisplay.color}`}>
+                  {statusDisplay.icon}
+                  <span className="text-sm">{statusDisplay.text}</span>
+                </div>
+                {requestId && searchStatus !== 'processed' && searchStatus !== 'failed' && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    ID: {requestId.slice(0, 8)}...
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
         
+        {/* Правая колонка - результаты */}
         <div>
-          {searchResults && (
+          {searchResults ? (
             <SimilarImages
               similarImages={searchResults}
               title={`Результаты поиска${selectedColor ? ` (цвет: ${selectedColorData?.name || selectedColor})` : ''}`}
             />
+          ) : searchStatus === 'processing' ? (
+            <div className="card p-8 text-center">
+              <Loader />
+              <p className="mt-4 text-gray-600">Обработка изображения в очереди...</p>
+              <p className="text-sm text-gray-400 mt-2">Это может занять до 30 секунд</p>
+            </div>
+          ) : (
+            <div className="card p-8 text-center text-gray-400">
+              <FiSearch className="mx-auto text-4xl mb-2" />
+              <p>Результаты поиска появятся здесь</p>
+            </div>
           )}
         </div>
       </div>

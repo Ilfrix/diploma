@@ -60,7 +60,7 @@ export const SUCCESS_MESSAGES = {
   SAMPLE_UPDATED: 'Эталон успешно обновлен',
   SAMPLE_DELETED: 'Эталон удален',
   IMAGE_UPLOADED: 'Изображение загружено',
-  SEARCH_COMPLETED: 'Поиск завершен',
+  SEARCH_PROCESSED: 'Поиск завершен',
 };
 
 // URL маршруты

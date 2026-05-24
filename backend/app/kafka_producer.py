@@ -1,4 +1,5 @@
 import json
+import base64
 import logging
 from typing import Dict, Any
 from datetime import datetime
@@ -65,5 +66,27 @@ class KafkaProducerManager:
             value=message
         )
         logger.info(f"Image {image_id} sent for processing")
+
+    async def send_search_request(
+        self,
+        request_id: str,
+        image_bytes: bytes,
+        metadata: Dict[str, Any]
+    ):
+        """Отправка запроса на поиск"""
+        
+        message = {
+            "request_id": request_id,
+            "image_data": base64.b64encode(image_bytes).decode('utf-8'),
+            "metadata": metadata,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        await self.send_message(
+            topic=config.KAFKA_SEARCH_TOPIC,
+            key=request_id,
+            value=message
+        )
+        logger.info(f"Search request {request_id} sent for processing")
 
 kafka_producer = KafkaProducerManager(config.KAFKA_BOOTSTRAP_SERVERS)

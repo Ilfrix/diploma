@@ -298,7 +298,7 @@ def test_image_file(test_image_bytes):
 @pytest.fixture
 def test_sample(db_session, test_user):
     """Создание тестового семпла"""
-    from app.models import Sample, SampleStatus, ImageModel
+    from app.models import Sample, ProcessStatus, ImageModel
     
     image = ImageModel(
         image_path="samples/test/path.jpg",
@@ -313,7 +313,7 @@ def test_sample(db_session, test_user):
         name="Test Sample",
         description="Test Description",
         image_id=image.id,
-        status=SampleStatus.PENDING
+        status=ProcessStatus.PENDING
     )
     db_session.add(sample)
     db_session.commit()

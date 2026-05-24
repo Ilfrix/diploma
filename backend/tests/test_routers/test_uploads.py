@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from PIL import Image
-from app.models import Sample, ImageModel, SampleStatus
+from app.models import Sample, ImageModel, ProcessStatus
 import io
 
 
@@ -23,7 +23,7 @@ class TestUploadsRouter:
                 user_id=test_user.id,
                 name="Test Sample",
                 image_id=image.id,
-                status=SampleStatus.PROCESSED
+                status=ProcessStatus.PROCESSED
             )
             db_session.add(sample)
             db_session.commit()
@@ -65,7 +65,7 @@ class TestUploadsRouter:
                 user_id=test_user.id,
                 name="Test Sample",
                 image_id=image.id,
-                status=SampleStatus.PROCESSED
+                status=ProcessStatus.PROCESSED
             )
             db_session.add(sample)
             db_session.commit()
@@ -103,7 +103,7 @@ class TestUploadsRouter:
             user_id=test_user.id,
             name="Test Sample",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -144,7 +144,7 @@ class TestUploadsRouter:
             user_id=test_user.id,
             name="Test Sample",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -177,7 +177,7 @@ class TestUploadsRouter:
             user_id=test_user.id,
             name="Test Sample",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -218,7 +218,7 @@ class TestUploadsRouter:
             user_id=test_user.id,
             name="Test Sample",
             image_id=image.id,
-            status=SampleStatus.PROCESSED
+            status=ProcessStatus.PROCESSED
         )
         db_session.add(sample)
         db_session.commit()
@@ -261,7 +261,7 @@ class TestUploadsRouter:
                 user_id=test_user.id,
                 name=f"Sample {i}",
                 image_id=image.id,
-                status=SampleStatus.PROCESSED
+                status=ProcessStatus.PROCESSED
             )
             db_session.add(sample)
             samples.append(sample)

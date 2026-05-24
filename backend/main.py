@@ -9,11 +9,13 @@ from app.database import engine, Base
 from app.ml.processor import init_ml_models
 from app.ml.worker import MLProcessingWorker
 from app.kafka_producer import kafka_producer
-from app.kafka_consumer import kafka_consumer
+from app.kafka_consumer import kafka_consumer, kafka_search_consumer
 from app.routers import auth_router, samples_router, search_router, upload_router
 from app.routers.search import set_vector_db
 from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
+from app.search_worker import SearchWorker
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 # Глобальные объекты
 vector_db = None
 ml_worker = None
+search_worker = None
 minio = minio_client
 
 @asynccontextmanager
@@ -58,6 +61,11 @@ async def lifespan(app: FastAPI):
     
     # Запуск Kafka консюмера с обработчиком
     await kafka_consumer.start(ml_worker.process_image_message)
+
+    search_worker = SearchWorker(vector_db)
+    
+    # Запуск Kafka consumer для поисковых запросов
+    await kafka_search_consumer.start(search_worker.process_search_message)
     
     # Создание таблиц БД
     Base.metadata.create_all(bind=engine)

@@ -30,7 +30,7 @@ class SampleUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
 
-class SampleStatusEnum(str, Enum):
+class ProcessStatusEnum(str, Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     PROCESSED = "processed"
@@ -44,7 +44,7 @@ class SampleResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
-    status: SampleStatusEnum
+    status: ProcessStatusEnum
     error_message: Optional[str] = None
     isOwner: Optional[bool] = False
     owner_name: Optional[str] = None

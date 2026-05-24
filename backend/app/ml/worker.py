@@ -13,7 +13,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Sample, SampleStatus, ImageModel, Crop, Vector
+from app.models import Sample, ProcessStatus, ImageModel, Crop, Vector
 from app.utils import hash_image
 from app.ml.processor import process_image_with_crops, save_crops_to_database, save_original_image_to_database, get_detector, get_encoder
 
@@ -69,7 +69,7 @@ class MLProcessingWorker:
                 sample = db.query(Sample).filter(Sample.id == sample_id).first()
                 if not sample:
                     logger.error(f"Sample {sample_id} not found in database")
-                    await self._update_sample_status(db, sample_id, SampleStatus.FAILED, "Sample not found")
+                    await self._update_sample_status(db, sample_id, ProcessStatus.FAILED, "Sample not found")
                     return
                 
                 # Сохраняем оригинальное изображение в БД (если еще не сохранено)
@@ -89,7 +89,7 @@ class MLProcessingWorker:
                     db.commit()
                 
                 # Обновляем статус на PROCESSING
-                sample.status = SampleStatus.PROCESSING
+                sample.status = ProcessStatus.PROCESSING
                 db.commit()
                 
                 # ML обработка с сохранением кропов
@@ -104,7 +104,7 @@ class MLProcessingWorker:
                 print(sample)
                 
                 # Обновляем статус сэмпла на PROCESSED
-                sample.status = SampleStatus.PROCESSED
+                sample.status = ProcessStatus.PROCESSED
                 sample.updated_at = datetime.now()
                 db.commit()
                 logger.info(f"Successfully processed sample {sample_id}: {len(result['crops'])} crops saved")
@@ -117,7 +117,7 @@ class MLProcessingWorker:
             # Обновляем статус на FAILED
             db = SessionLocal()
             try:
-                await self._update_sample_status(db, sample_id, SampleStatus.FAILED, str(e))
+                await self._update_sample_status(db, sample_id, ProcessStatus.FAILED, str(e))
             finally:
                 db.close()
     
@@ -272,7 +272,7 @@ class MLProcessingWorker:
         self,
         db: Session,
         sample_id: str,
-        status: SampleStatus,
+        status: ProcessStatus,
         error: str = None
     ):
         """Обновление статуса сэмпла в БД"""

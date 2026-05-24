@@ -72,3 +72,9 @@ kafka_consumer = KafkaConsumerManager(
     config.KAFKA_CONSUMER_GROUP,
     [config.KAFKA_IMAGE_TOPIC]
 )
+
+kafka_search_consumer = KafkaConsumerManager(
+    config.KAFKA_BOOTSTRAP_SERVERS,
+    config.KAFKA_SEARCH_CONSUMER_GROUP,
+    [config.KAFKA_SEARCH_TOPIC]
+)
