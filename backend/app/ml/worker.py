@@ -1,9 +1,7 @@
-import asyncio
 import base64
-import time
 import logging
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 from datetime import datetime
 import uuid
 from PIL import Image
@@ -15,11 +13,10 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Sample, ProcessStatus, ImageModel, Crop, Vector
 from app.utils import hash_image
-from app.ml.processor import process_image_with_crops, save_crops_to_database, save_original_image_to_database, get_detector, get_encoder
+from app.ml.processor import get_detector, get_encoder
 
 from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
-from app.config import config
 from app.utils import ColorExtractor
 
 logger = logging.getLogger(__name__)

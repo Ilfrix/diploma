@@ -1,8 +1,7 @@
 import io
 import numpy as np
 from PIL import Image
-from typing import Tuple, Dict, Any, List, Optional
-from datetime import datetime
+from typing import Tuple, Dict, Any, List
 import uuid
 import logging
 

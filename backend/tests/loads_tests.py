@@ -5,7 +5,6 @@
 """
 
 import time
-import os
 import json
 import statistics
 import uuid
@@ -365,21 +364,21 @@ class LoadTester:
             if time_growths:
                 avg_growth_ratio = statistics.mean([t / c for t, c in zip(time_growths, count_growths)])
                 
-                print(f"\n📐 Теоретическая оценка временной сложности:")
+                print("\n📐 Теоретическая оценка временной сложности:")
                 print(f"  Среднее отношение роста времени к росту данных: {avg_growth_ratio:.3f}")
                 
                 if avg_growth_ratio > 1.2:
                     complexity = "O(n²) или выше (суперлинейный рост)"
-                    print(f"  ⚠ Время растет быстрее количества данных - возможны проблемы с производительностью")
+                    print("  ⚠ Время растет быстрее количества данных - возможны проблемы с производительностью")
                 elif avg_growth_ratio > 0.8:
                     complexity = "O(n) - линейная сложность"
-                    print(f"  ✓ Линейная зависимость время ~ количество данных")
+                    print("  ✓ Линейная зависимость время ~ количество данных")
                 elif avg_growth_ratio > 0.5:
                     complexity = "O(log n) - логарифмическая сложность"
-                    print(f"  ✓ Хорошая производительность, время растет медленнее данных")
+                    print("  ✓ Хорошая производительность, время растет медленнее данных")
                 else:
                     complexity = "O(1) - константная сложность"
-                    print(f"  ✓ Отличная производительность, время не зависит от объема данных")
+                    print("  ✓ Отличная производительность, время не зависит от объема данных")
                 
                 print(f"\n  Вывод: {complexity}")
                 
@@ -389,7 +388,7 @@ class LoadTester:
                     last_count = counts[-1]
                     slope = (times[-1] - times[0]) / (counts[-1] - counts[0]) if counts[-1] != counts[0] else 0
                     
-                    print(f"\n🔮 Прогноз для больших объемов:")
+                    print("\n🔮 Прогноз для больших объемов:")
                     print(f"  При {last_count} сэмплах: ~{last_time:.4f} сек/сэмпл")
                     print(f"  При {last_count * 2} сэмплах: ~{last_time + slope * last_count:.4f} сек/сэмпл (при линейном росте)")
         

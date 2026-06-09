@@ -2,7 +2,6 @@
 Модуль для работы с MinIO S3
 """
 import io
-from typing import Optional, BinaryIO
 from datetime import timedelta
 from minio import Minio
 from minio.error import S3Error

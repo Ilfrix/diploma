@@ -1,8 +1,5 @@
-import pytest
-from unittest.mock import patch, AsyncMock
-from fastapi import UploadFile
-import io
-from app.models import Sample, ProcessStatus, ImageModel
+from unittest.mock import patch
+from app.models import Sample, ProcessStatus
 
 
 class TestSamplesRouter:

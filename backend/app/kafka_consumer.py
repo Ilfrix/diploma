@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import Optional, Callable, Awaitable
-from datetime import datetime
 
 from aiokafka import AIOKafkaConsumer
 import asyncio

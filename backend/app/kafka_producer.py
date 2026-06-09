@@ -5,7 +5,6 @@ from typing import Dict, Any
 from datetime import datetime
 
 from aiokafka import AIOKafkaProducer
-import asyncio
 
 from app.config import config
 

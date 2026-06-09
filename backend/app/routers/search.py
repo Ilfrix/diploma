@@ -1,13 +1,12 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
-import numpy as np
 import uuid
 from datetime import datetime, timedelta
 
 from app.database import get_db
 from app.models import User, Sample, ImageModel, ProcessStatus, Crop, Vector as VectorModel, SearchRequest
-from app.schemas import SimilarImage, SimilarResponse, SampleResponse, CropResponse
+from app.schemas import SimilarImage, SimilarResponse, CropResponse
 from app.auth import get_current_user
 from app.ml.processor import process_image_with_crops
 from app.kafka_producer import kafka_producer

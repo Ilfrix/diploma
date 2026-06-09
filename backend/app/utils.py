@@ -1,9 +1,7 @@
 import hashlib
 import cv2
 import numpy as np
-from typing import Tuple, List
-from sklearn.cluster import KMeans
-from collections import Counter
+from typing import Tuple
 
 color_map = {
     "red": (180, 40, 40),
