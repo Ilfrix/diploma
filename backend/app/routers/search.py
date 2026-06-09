@@ -462,11 +462,13 @@ async def search_similar_async(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    print('search_async')
+    print(color)
     request_id = str(uuid.uuid4())
     
     # 1. Сразу сохраняем в БД
     search_request = SearchRequest(
-        request_id=request_id,
+        id=request_id,
         user_id=current_user.id,
         status=ProcessStatus.PENDING.value,
         created_at=datetime.now(),
@@ -498,7 +500,7 @@ async def get_search_result(
 ):
     """Получение результата - данные из БД, не из памяти!"""
     search_request = db.query(SearchRequest).filter(
-        SearchRequest.request_id == request_id
+        SearchRequest.id == request_id
     ).first()
     
     if not search_request:

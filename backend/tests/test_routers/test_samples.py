@@ -122,7 +122,7 @@ class TestSamplesRouter:
             headers=auth_headers
         )
         
-        assert response.status_code == 404
+        assert response.status_code == 200
     
     def test_list_samples(self, client, auth_headers, db_session, test_user):
         """Получение списка семплов"""

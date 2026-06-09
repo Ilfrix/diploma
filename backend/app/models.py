@@ -104,7 +104,7 @@ class Vector(Base):
 class SearchRequest(Base):
     __tablename__ = "search_requests"
     
-    request_id = Column(String(36), primary_key=True)
+    id = Column(String(36), primary_key=True)
     user_id = Column(String(36), nullable=False)
     status = Column(String(20), nullable=False, default=ProcessStatus.PENDING.value)
     result = Column(JSON, nullable=True)

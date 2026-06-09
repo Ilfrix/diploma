@@ -80,8 +80,8 @@ async def lifespan(app: FastAPI):
 
 # Создание FastAPI приложения
 app = FastAPI(
-    title="Duplicate Detection System",
-    description="Система для распознавания дубликатов изображений с асинхронной обработкой",
+    title="FlexSearch",
+    description="Система для поиска похожих изображений",
     version="2.0.0",
     lifespan=lifespan
 )

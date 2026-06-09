@@ -162,7 +162,7 @@ class SearchWorker:
     ):
         """Обновляет статус запроса"""
         db.query(SearchRequest).filter(
-            SearchRequest.request_id == request_id
+            SearchRequest.id == request_id
         ).update({
             "status": status.value,
             "updated_at": datetime.now()
@@ -189,6 +189,6 @@ class SearchWorker:
             update_data["error_message"] = error
         
         db.query(SearchRequest).filter(
-            SearchRequest.request_id == request_id
+            SearchRequest.id == request_id
         ).update(update_data)
         db.commit()

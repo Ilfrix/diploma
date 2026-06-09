@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from app.models import Sample, ProcessStatus, ImageModel, Crop, Vector
+from PIL import Image
 import numpy as np
 
 
@@ -110,7 +111,8 @@ class TestSearchRouter:
         """Поиск по загруженному изображению"""
         with patch('app.routers.search.process_image_with_crops') as mock_process:
             mock_process.return_value = (
-                [np.random.rand(512).tolist()],  # embeddings
+                # [np.random.rand(512).tolist()],  # embeddings
+                [Image.open('/home/polyanskii/Pictures/projects_picture/sofa_1.jpeg')],
                 [],  # detections
                 []   # crops_data
             )

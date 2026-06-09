@@ -32,7 +32,7 @@ const Navbar = () => {
         <div className="navbar-content">
           {/* Логотип - слева */}
           <Link to="/samples" className="navbar-logo">
-            DuplicateDetector
+            FlexSearch
           </Link>
           
           {/* Центральные кнопки навигации */}

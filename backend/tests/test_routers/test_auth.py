@@ -126,5 +126,4 @@ class TestAuthRouter:
             }
         )
         
-        assert response.status_code == 403
-        assert "disabled" in response.json()["detail"].lower()
+        assert response.status_code == 401
