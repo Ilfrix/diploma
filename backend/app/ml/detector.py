@@ -53,7 +53,7 @@ class ImageDetector:
                 class_ids = [elem['class_id'] for elem in results['objects']]
                 
                 for i, (box, conf, class_name, cls_id) in enumerate(
-                    zip(boxes_data, confs_data,classes_data, class_ids)
+                    zip(boxes_data, confs_data,classes_data, class_ids, strict=True)
                 ):
                     x1, y1, x2, y2 = box
                     

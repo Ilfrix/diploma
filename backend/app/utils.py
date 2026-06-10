@@ -72,7 +72,7 @@ class ColorExtractor:
         
         0 - идентичные цвета, 1 - максимально разные
         """
-        distance = np.sqrt(sum((c1 - c2) ** 2 for c1, c2 in zip(rgb1, rgb2)))
+        distance = np.sqrt(sum((c1 - c2) ** 2 for c1, c2 in zip(rgb1, rgb2, strict=True)))
         max_distance = np.sqrt(3 * 255 ** 2)  # ~441.67
         return distance / max_distance
     

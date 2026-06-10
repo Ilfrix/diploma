@@ -70,7 +70,7 @@ async def get_similar(
     # Собираем результаты от всех кропов
     all_similar = {}
     
-    for crop, vector in crops_with_vectors:
+    for _crop, vector in crops_with_vectors:
         # Получаем эмбеддинг из векторной БД по milvus_id
         embedding = vector_db.get_vector(vector.milvus_id)
         if embedding is None:
@@ -303,8 +303,8 @@ async def search_similar_by_image(
     # Обработка изображения
     image_bytes = await image.read()
     
-    # Получаем эмбеддинги для кропов
-    embeddings, detections, crops_data = process_image_with_crops(
+    # Получаем эмбеддинги для кропов, embed, det, crop_data
+    embeddings, _det, _crop_data = process_image_with_crops(
         image_bytes=image_bytes,
         db=None,  # Не сохраняем в БД
         image_id=None
@@ -329,7 +329,7 @@ async def search_similar_by_image(
     # Получаем ID найденных сэмплов
     found_sample_ids = []
     vec_metadata_map = {}
-    for vec_id, score, metadata in similar_vectors:
+    for _vec_id, score, metadata in similar_vectors:
         sample_id = metadata.get("sample_id")
         if sample_id and sample_id not in found_sample_ids:
             found_sample_ids.append(sample_id)

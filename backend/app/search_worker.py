@@ -124,7 +124,7 @@ class SearchWorker:
             if not russian_color:
                 russian_color = color_filter
         
-        for vec_id, score, metadata in similar_vectors:
+        for _vec_id, score, metadata in similar_vectors:
             sample_id = metadata.get("sample_id")
             if not sample_id:
                 continue

@@ -121,7 +121,7 @@ class MLProcessingWorker:
         image_bytes: bytes,
         image_path: str,
         mime_type: str,
-        image_hash: str = None
+        image_hash: str
     ) -> ImageModel:
         """Сохраняет изображение в БД"""
         
@@ -190,7 +190,7 @@ class MLProcessingWorker:
         confidences = detections.get('confidences', [])
         
         for idx, (crop_image, bbox, class_name, confidence, embedding) in enumerate(
-            zip(crops, boxes, classes, confidences, embeddings)
+            zip(crops, boxes, classes, confidences, embeddings, strict=True)
         ):
             # Сохраняем кроп в MinIO
             crop_path = f"crops/{sample.image_id}/{idx}.jpg"
@@ -267,7 +267,7 @@ class MLProcessingWorker:
         db: Session,
         sample_id: str,
         status: ProcessStatus,
-        error: str = None
+        error: str
     ):
         """Обновление статуса сэмпла в БД"""
         try:

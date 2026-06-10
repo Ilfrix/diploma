@@ -33,8 +33,8 @@ def init_ml_models(detector_model_path: str, encoder_model_path: str):
 def process_image_with_crops(
     image_bytes: bytes,
     db: Session,
-    image_id: str = None,
-    image_path: str = None,
+    image_id: str,
+    image_path: str,
     mime_type: str = "image/jpeg"
 ) -> tuple[list[np.ndarray], dict[str, Any], list[dict[str, Any]]]:
     """
@@ -70,7 +70,7 @@ def process_image_with_crops(
     confidences = detections.get('confidences', [])
     
     for idx, (crop_image, bbox, class_name, confidence, embedding) in enumerate(
-        zip(crops, boxes, classes, confidences, embeddings)
+        zip(crops, boxes, classes, confidences, embeddings, strict=True)
     ):
         crops_data.append({
             "index": idx,
@@ -92,7 +92,7 @@ def save_crops_to_database(
     """Сохраняет кропы в базу данных"""
     saved_crops = []
     
-    for crop_data, milvus_id in zip(crops_data, milvus_ids):
+    for crop_data, milvus_id in zip(crops_data, milvus_ids, strict=True):
         # Сохраняем кроп в MinIO
         crop_path = f"crops/{image_id}/{crop_data['index']}.jpg"
         crop_bytes_io = io.BytesIO()
@@ -140,7 +140,7 @@ def save_original_image_to_database(
     image_bytes: bytes,
     image_path: str,
     mime_type: str,
-    image_hash: str = None
+    image_hash: str
 ) -> ImageModel:
     """Сохраняет оригинальное изображение в базу данных"""
     if not image_hash:

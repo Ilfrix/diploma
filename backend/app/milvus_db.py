@@ -224,7 +224,7 @@ class MilvusDatabase:
         query_vector: np.ndarray, 
         k: int = 10, 
         threshold: float = 0.7,
-        user_id: str = None
+        user_id: str = ''
     ) -> list[tuple[str, float, dict]]:
         """Поиск похожих векторов"""
         try:

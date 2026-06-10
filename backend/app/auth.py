@@ -50,8 +50,9 @@ def get_current_user(
         if user_id is None:
             raise credentials_exception
         token_data = TokenData(user_id=user_id, username=payload.get("username"))
-    except jwt.PyJWTError:
-        raise credentials_exception
+    except jwt.PyJWTError as e:
+        print('Ошибка в get_current_user', e)
+        return
     
     user = db.query(User).filter(User.id == token_data.user_id).first()
     if user is None:

@@ -358,7 +358,7 @@ class LoadTester:
             count_growths = [counts[i+1] / counts[i] for i in range(len(counts)-1)]
             
             if time_growths:
-                avg_growth_ratio = statistics.mean([t / c for t, c in zip(time_growths, count_growths)])
+                avg_growth_ratio = statistics.mean([t / c for t, c in zip(time_growths, count_growths, strict=True)])
                 
                 print("\n📐 Теоретическая оценка временной сложности:")
                 print(f"  Среднее отношение роста времени к росту данных: {avg_growth_ratio:.3f}")

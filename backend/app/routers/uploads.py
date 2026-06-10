@@ -18,9 +18,8 @@ router = APIRouter(prefix="/api/uploads", tags=["uploads"])
 
 def get_image_path_from_sample(sample: Sample) -> str | None:
     """Получить путь к изображению в MinIO из семпла через связанную таблицу Image"""
-    if sample and sample.image:
-        if minio_client.file_exists(sample.image.image_path):
-            return sample.image.image_path
+    if sample and sample.image and minio_client.file_exists(sample.image.image_path):
+        return sample.image.image_path
     return None
 
 
@@ -112,27 +111,28 @@ async def get_image_thumbnail(
         image_bytes = minio_client.download_file(object_path)
         
         # Создаем миниатюру
-        with Image.open(io.BytesIO(image_bytes)) as img:
-            # Конвертируем в RGB если нужно
-            if img.mode in ('RGBA', 'LA', 'P'):
-                img = img.convert('RGB')
-            
-            # Создаем миниатюру
-            img.thumbnail((size, size), Image.Resampling.LANCZOS)
-            
-            # Сохраняем в байты
-            thumb_bytes = io.BytesIO()
-            img.save(thumb_bytes, format='JPEG', quality=85, optimize=True)
-            thumb_bytes.seek(0)
-            
-            return Response(
-                content=thumb_bytes.getvalue(),
-                media_type="image/jpeg",
-                headers={
-                    "Cache-Control": "public, max-age=3600",
-                    "Content-Disposition": f"inline; filename=thumbnail_{image_id}.jpg"
-                }
-            )
+        img = Image.open(io.BytesIO(image_bytes))
+        # with Image.open(io.BytesIO(image_bytes)) as img:
+        # Конвертируем в RGB если нужно
+        if img.mode in ('RGBA', 'LA', 'P'):
+            img = img.convert('RGB')
+        
+        # Создаем миниатюру
+        img.thumbnail((size, size), Image.Resampling.LANCZOS)
+        
+        # Сохраняем в байты
+        thumb_bytes = io.BytesIO()
+        img.save(thumb_bytes, format='JPEG', quality=85, optimize=True)
+        thumb_bytes.seek(0)
+        
+        return Response(
+            content=thumb_bytes.getvalue(),
+            media_type="image/jpeg",
+            headers={
+                "Cache-Control": "public, max-age=3600",
+                "Content-Disposition": f"inline; filename=thumbnail_{image_id}.jpg"
+            }
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -183,29 +183,27 @@ async def get_sample_image(
             image_bytes = minio_client.download_file(image_path)
             
             # Создаем миниатюру
-            with Image.open(io.BytesIO(image_bytes)) as img:
-                if img.mode in ('RGBA', 'LA', 'P'):
-                    img = img.convert('RGB')
-                
-                img.thumbnail((size, size), Image.Resampling.LANCZOS)
-                
-                thumb_bytes = io.BytesIO()
-                img.save(thumb_bytes, format='JPEG', quality=85, optimize=True)
-                thumb_bytes.seek(0)
-                
-                return Response(
-                    content=thumb_bytes.getvalue(),
-                    media_type="image/jpeg",
-                    headers={
-                        "Cache-Control": "public, max-age=3600",
-                        "Content-Disposition": f"inline; filename=sample_{sample_id}_thumb.jpg"
-                    }
-                )
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create thumbnail: {e!s}"
+            img = Image.open(io.BytesIO(image_bytes))
+            # with Image.open(io.BytesIO(image_bytes)) as img:
+            if img.mode in ('RGBA', 'LA', 'P'):
+                img = img.convert('RGB')
+            
+            img.thumbnail((size, size), Image.Resampling.LANCZOS)
+            
+            thumb_bytes = io.BytesIO()
+            img.save(thumb_bytes, format='JPEG', quality=85, optimize=True)
+            thumb_bytes.seek(0)
+            
+            return Response(
+                content=thumb_bytes.getvalue(),
+                media_type="image/jpeg",
+                headers={
+                    "Cache-Control": "public, max-age=3600",
+                    "Content-Disposition": f"inline; filename=sample_{sample_id}_thumb.jpg"
+                }
             )
+        except Exception as e:
+            print('Ошибка в get_sample_image', e)
     
     # Возвращаем временную ссылку на оригинал
     image_url = minio_client.get_file_url(image_path, expires=3600)

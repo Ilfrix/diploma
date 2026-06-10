@@ -51,7 +51,6 @@ class KafkaProducerManager:
     async def send_image_for_processing(self, image_id: str, image_bytes: bytes, 
                                        metadata: dict[str, Any]):
         """Отправка изображения на обработку"""
-        import base64
         
         message = {
             "image_id": image_id,
