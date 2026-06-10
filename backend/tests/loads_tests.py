@@ -4,18 +4,19 @@
 С многократными итерациями для стабильности результатов
 """
 
-import time
+import io
 import json
 import statistics
+import threading
+import time
 import uuid
 from datetime import datetime
-from typing import List, Dict
-import requests
-from PIL import Image, ImageDraw
-import io
+from typing import Dict, List
+
 import matplotlib.pyplot as plt
 import numpy as np
-import threading
+import requests
+from PIL import Image, ImageDraw
 
 # Конфигурация
 API_BASE_URL = "http://localhost:8000"

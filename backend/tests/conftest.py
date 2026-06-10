@@ -1,18 +1,18 @@
+import asyncio
+from unittest.mock import MagicMock, patch
+
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from unittest.mock import MagicMock, patch
-import numpy as np
-import asyncio
 
+from app.auth import create_access_token, get_current_user
+from app.database import Base, get_db
+from app.models import User
 # ВАЖНО: Импортируем app ДО определения фикстур
 from main import app
-from app.database import get_db, Base
-from app.models import User
-from app.auth import create_access_token, get_current_user
-
 
 # Тестовая БД SQLite
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db?cache=shared"
@@ -271,8 +271,9 @@ def client(db_session, test_user, mock_milvus):
 @pytest.fixture
 def test_image_bytes():
     """Создание тестового изображения"""
-    from PIL import Image
     import io
+
+    from PIL import Image
     
     img = Image.new('RGB', (100, 100), color='red')
     img_byte_arr = io.BytesIO()
@@ -284,8 +285,9 @@ def test_image_bytes():
 @pytest.fixture
 def test_image_file(test_image_bytes):
     """Тестовый файл изображения"""
-    from fastapi import UploadFile
     import io
+
+    from fastapi import UploadFile
     
     return UploadFile(
         filename="test.jpg",
@@ -298,7 +300,7 @@ def test_image_file(test_image_bytes):
 @pytest.fixture
 def test_sample(db_session, test_user):
     """Создание тестового семпла"""
-    from app.models import Sample, ProcessStatus, ImageModel
+    from app.models import ImageModel, ProcessStatus, Sample
     
     image = ImageModel(
         image_path="samples/test/path.jpg",

@@ -1,7 +1,8 @@
 import hashlib
+from typing import Tuple
+
 import cv2
 import numpy as np
-from typing import Tuple
 
 color_map = {
     "red": (180, 40, 40),

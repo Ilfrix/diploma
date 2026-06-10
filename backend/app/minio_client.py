@@ -3,11 +3,13 @@
 """
 import io
 from datetime import timedelta
+
+from fastapi import HTTPException, UploadFile, status
 from minio import Minio
 from minio.error import S3Error
-from fastapi import HTTPException, status, UploadFile
 
 from app.config import config
+
 
 class MinIOClient:
     """Клиент для работы с MinIO"""

@@ -1,17 +1,17 @@
 import base64
-import logging
-from typing import Dict, Any, Optional
-from datetime import datetime
-
-from sqlalchemy.orm import Session
-from PIL import Image
 import io
+import logging
+from datetime import datetime
+from typing import Any, Dict, Optional
+
 import numpy as np
+from PIL import Image
+from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import SearchRequest, ProcessStatus, Sample, Crop
-from app.ml.processor import get_detector, get_encoder
 from app.milvus_db import MilvusDatabase
+from app.ml.processor import get_detector, get_encoder
+from app.models import Crop, ProcessStatus, Sample, SearchRequest
 from app.utils import COLOR_NAMES
 
 logger = logging.getLogger(__name__)

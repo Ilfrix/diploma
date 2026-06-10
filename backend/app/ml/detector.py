@@ -1,7 +1,9 @@
 import logging
-from PIL import Image
-import numpy as np
 from typing import List, Tuple
+
+import numpy as np
+from PIL import Image
+
 from app.triton_client import TritonYOLODetector
 
 logger = logging.getLogger(__name__)

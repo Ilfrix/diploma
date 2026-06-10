@@ -1,9 +1,9 @@
+import asyncio
 import json
 import logging
-from typing import Optional, Callable, Awaitable
+from typing import Awaitable, Callable, Optional
 
 from aiokafka import AIOKafkaConsumer
-import asyncio
 
 from app.config import config
 

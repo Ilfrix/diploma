@@ -1,7 +1,9 @@
 from unittest.mock import patch
-from app.models import Sample, ProcessStatus, ImageModel, Crop, Vector
-from PIL import Image
+
 import numpy as np
+from PIL import Image
+
+from app.models import Crop, ImageModel, ProcessStatus, Sample, Vector
 
 
 class TestSearchRouter:

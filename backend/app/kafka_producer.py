@@ -1,8 +1,8 @@
-import json
 import base64
+import json
 import logging
-from typing import Dict, Any
 from datetime import datetime
+from typing import Any, Dict
 
 from aiokafka import AIOKafkaProducer
 

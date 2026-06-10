@@ -1,8 +1,9 @@
 import logging
-import timm
-import numpy as np
-import torch
 from typing import List
+
+import numpy as np
+import timm
+import torch
 
 logger = logging.getLogger(__name__)
 

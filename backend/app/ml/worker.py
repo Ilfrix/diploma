@@ -1,23 +1,21 @@
 import base64
-import logging
-import json
-from typing import Dict, Any
-from datetime import datetime
-import uuid
-from PIL import Image
 import io
-import numpy as np
+import json
+import logging
+import uuid
+from datetime import datetime
+from typing import Any, Dict
 
+import numpy as np
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Sample, ProcessStatus, ImageModel, Crop, Vector
-from app.utils import hash_image
-from app.ml.processor import get_detector, get_encoder
-
 from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
-from app.utils import ColorExtractor
+from app.ml.processor import get_detector, get_encoder
+from app.models import Crop, ImageModel, ProcessStatus, Sample, Vector
+from app.utils import ColorExtractor, hash_image
 
 logger = logging.getLogger(__name__)
 detector = get_detector()

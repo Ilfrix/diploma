@@ -1,5 +1,6 @@
 from unittest.mock import patch
-from app.models import Sample, ProcessStatus
+
+from app.models import ProcessStatus, Sample
 
 
 class TestSamplesRouter:

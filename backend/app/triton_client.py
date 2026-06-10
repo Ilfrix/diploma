@@ -1,7 +1,9 @@
+from typing import Dict, List, Tuple
+
+import cv2
 import numpy as np
 import tritonclient.http as httpclient
-import cv2
-from typing import List, Dict, Tuple
+
 
 class TritonYOLODetector:
     def __init__(self, url: str = "localhost:8010"):  # Ваш порт 8010

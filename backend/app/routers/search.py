@@ -1,15 +1,18 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from sqlalchemy.orm import Session
 import uuid
 from datetime import datetime, timedelta
+from typing import List, Optional
 
-from app.database import get_db
-from app.models import User, Sample, ImageModel, ProcessStatus, Crop, Vector as VectorModel, SearchRequest
-from app.schemas import SimilarImage, SimilarResponse, CropResponse
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
+
 from app.auth import get_current_user
-from app.ml.processor import process_image_with_crops
+from app.database import get_db
 from app.kafka_producer import kafka_producer
+from app.ml.processor import process_image_with_crops
+from app.models import (Crop, ImageModel, ProcessStatus, Sample, SearchRequest,
+                        User)
+from app.models import Vector as VectorModel
+from app.schemas import CropResponse, SimilarImage, SimilarResponse
 from app.utils import COLOR_NAMES
 
 router = APIRouter(prefix="/api", tags=["search"])

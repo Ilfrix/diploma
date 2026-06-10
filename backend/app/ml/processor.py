@@ -1,16 +1,16 @@
 import io
+import logging
+import uuid
+from typing import Any, Dict, List, Tuple
+
 import numpy as np
 from PIL import Image
-from typing import Tuple, Dict, Any, List
-import uuid
-import logging
-
 from sqlalchemy.orm import Session
 
+from app.minio_client import minio_client
 from app.ml.detector import ImageDetector
 from app.ml.encoder import ImageEncoder
-from app.models import ImageModel, Crop, Vector
-from app.minio_client import minio_client
+from app.models import Crop, ImageModel, Vector
 from app.utils import hash_image
 
 # Глобальные экземпляры

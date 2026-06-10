@@ -1,19 +1,21 @@
+import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
-import logging
 
 from app.config import config
-from app.database import engine, Base
-from app.ml.processor import init_ml_models
-from app.ml.worker import MLProcessingWorker
-from app.kafka_producer import kafka_producer
+from app.database import Base, engine
 from app.kafka_consumer import kafka_consumer, kafka_search_consumer
-from app.routers import auth_router, samples_router, search_router, upload_router
-from app.routers.search import set_vector_db
+from app.kafka_producer import kafka_producer
 from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
+from app.ml.processor import init_ml_models
+from app.ml.worker import MLProcessingWorker
+from app.routers import (auth_router, samples_router, search_router,
+                         upload_router)
+from app.routers.search import set_vector_db
 from app.search_worker import SearchWorker
 
 

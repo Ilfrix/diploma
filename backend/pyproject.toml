@@ -44,6 +44,7 @@ dependencies = [
     "huggingface-hub==1.10.1",
     "idna==3.7",
     "ipython==8.39.0",
+    "isort>=8.0.1",
     "jedi==0.19.2",
     "jinja2==3.1.6",
     "kiwisolver==1.5.0",
@@ -150,3 +151,89 @@ dependencies = [
     "websockets==16.0",
     "werkzeug==3.1.8",
 ]
+
+[tool.ruff]
+# Общие настройки
+line-length = 88
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+]
+
+[tool.ruff.lint]
+# Включаем основные правила для бэкенда
+select = [
+    "E",     # pycodestyle ошибки
+    "F",     # Pyflakes (неиспользуемые импорты/переменные)
+    "I",     # isort (сортировка импортов)
+    "UP",    # pyupgrade (современный синтаксис для Python 3.11+)
+    "B",     # flake8-bugbear (ловим скрытые баги)
+    "C4",    # flake8-comprehensions (улучшаем генераторы списков)
+    "SIM",   # flake8-simplify (упрощаем код)
+    "PLC",   # Pylint логические ошибки
+    "PLE",   # Pylint ошибки
+    "PLW",   # Pylint предупреждения
+    "RUF",   # Специфичные правила Ruff
+]
+
+# Игнорируем проблемные правила
+ignore = [
+    "E501",   # Длина строки (за это отвечает ruff format)
+    "B008",   # Call-выражения в аргументах по умолчанию (нужно для FastAPI Depends)
+    "S101",   # Использование assert (разрешено в тестах)
+]
+
+# Настройка сложности функций (для бэкенда можно повысить)
+[tool.ruff.lint.pylint]
+max-args = 10           # Максимум аргументов функции
+max-returns = 6         # Максимум return выражений
+max-branches = 20       # Максимум ветвлений
+max-statements = 80     # Максимум выражений в функции
+
+# Настройка сортировки импортов (isort)
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+lines-between-types = 1
+force-single-line = false
+force-sort-within-sections = true
+order-by-type = true
+known-first-party = ["backend", "app"]  # Укажите название вашего пакета
+known-third-party = [
+    "fastapi",
+    "sqlalchemy",
+    "pydantic"
+]
+
+# Группы импортов
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+# Игнорируем определенные файлы
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",      # Разрешаем assert в тестах
+    "PLR2004",   # Разрешаем магические числа в тестах
+    "B011",      # Разрешаем пустые except в тестах
+]
+
+# Настройки форматтера (замена black)
+[tool.ruff.format]
+quote-style = "double"        # Используем двойные кавычки
+indent-style = "space"        # Пробелы для отступов
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# Дополнительно: авто-исправление
+# [tool.ruff.lint.fixable]
+# Какие правила можно автоматически исправлять
+# fixable = ["ALL"]
+# Какие правила НЕЛЬЗЯ автоматически исправлять
+# unfixable = ["B", "S", "PLW"]

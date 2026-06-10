@@ -1,10 +1,9 @@
 import logging
-from typing import List, Tuple, Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
-from pymilvus import (
-    connections, Collection, CollectionSchema, 
-    FieldSchema, DataType, utility
-)
+from pymilvus import (Collection, CollectionSchema, DataType, FieldSchema,
+                      connections, utility)
 
 logger = logging.getLogger(__name__)
 

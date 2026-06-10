@@ -1,9 +1,11 @@
+import enum
 import uuid
 from datetime import datetime, timedelta
 
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean, Enum, UniqueConstraint, Float, Integer, JSON, Index
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
+                        ForeignKey, Index, Integer, String, Text,
+                        UniqueConstraint)
 from sqlalchemy.orm import relationship
-import enum
 
 from app.database import Base
 
