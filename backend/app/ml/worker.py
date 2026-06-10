@@ -33,14 +33,12 @@ class MLProcessingWorker:
     async def process_image_message(self, key: str, message: Dict[str, Any]):
         """Обработка сообщения с изображением"""
         sample_id = None
-        image_id = None
         
         try:
             # Извлекаем данные из сообщения
             sample_id = message.get("image_id") or message.get("sample_id")
             image_data_b64 = message.get("image_data")
             metadata = message.get("metadata", {})
-            timestamp = message.get("timestamp")
             
             if not sample_id:
                 logger.error("No sample_id in message")

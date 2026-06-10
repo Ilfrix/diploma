@@ -36,10 +36,6 @@ class ProcessStatusEnum(str, Enum):
     PROCESSED = "processed"
     FAILED = "failed"
 
-# Forward references для связанных схем
-class ImageResponse(BaseModel):
-    pass
-
 class SampleResponse(BaseModel):
     id: str
     name: str
@@ -94,7 +90,6 @@ class CropResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 # ========== Search/Similarity schemas ==========
 class SimilarImage(BaseModel):
     sample_id: str
@@ -109,3 +104,8 @@ class SimilarResponse(BaseModel):
     query_name: str
     similar_images: List[SimilarImage]
     processing_time_ms: Optional[float] = None
+
+
+SampleResponse.model_rebuild()
+ImageResponse.model_rebuild()
+CropResponse.model_rebuild()

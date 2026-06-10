@@ -46,7 +46,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """Вход в аккаунт"""
     
     user = db.query(User).filter(User.username == user_data.username,
-                                 User.is_active == True).first()
+                                 User.is_active).first()
 
     if not user or not verify_password(user_data.password, user.password_hash):
         raise HTTPException(
