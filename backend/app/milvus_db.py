@@ -1,9 +1,16 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
-from pymilvus import (Collection, CollectionSchema, DataType, FieldSchema,
-                      connections, utility)
+from pymilvus import (
+    Collection,
+    CollectionSchema,
+    DataType,
+    FieldSchema,
+    connections,
+    utility,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -98,14 +105,14 @@ class MilvusDatabase:
             logger.error(f"Error initializing collection: {e}")
             raise
     
-    def _prepare_vector(self, vector: np.ndarray) -> List[float]:
+    def _prepare_vector(self, vector: np.ndarray) -> list[float]:
         """Подготовка вектора для Milvus"""
         if isinstance(vector, np.ndarray):
             vector = vector.astype(np.float32)
             return vector.tolist()
         return vector
     
-    def add_vectors_batch(self, vectors_data: List[Dict[str, Any]]):
+    def add_vectors_batch(self, vectors_data: list[dict[str, Any]]):
         """
         Пакетное добавление векторов
         
@@ -155,7 +162,7 @@ class MilvusDatabase:
             logger.error(f"Error in batch add: {e}", exc_info=True)
             raise
     
-    def add_vector(self, vector_id: str, vector: np.ndarray, metadata: Dict[str, Any]):
+    def add_vector(self, vector_id: str, vector: np.ndarray, metadata: dict[str, Any]):
         """Добавление одного вектора"""
         self.add_vectors_batch([{
             "vector_id": vector_id,
@@ -163,7 +170,7 @@ class MilvusDatabase:
             "metadata": metadata
         }])
     
-    def get_vector(self, vector_id: str) -> Optional[np.ndarray]:
+    def get_vector(self, vector_id: str) -> np.ndarray | None:
         """Получение вектора по ID"""
         try:
             results = self.collection.query(
@@ -196,7 +203,7 @@ class MilvusDatabase:
         except Exception as e:
             logger.error(f"Error deleting by sample_id: {e}")
     
-    def get_metadata(self, vector_id: str) -> Dict[str, Any]:
+    def get_metadata(self, vector_id: str) -> dict[str, Any]:
         """Получение метаданных"""
         try:
             results = self.collection.query(
@@ -218,7 +225,7 @@ class MilvusDatabase:
         k: int = 10, 
         threshold: float = 0.7,
         user_id: str = None
-    ) -> List[Tuple[str, float, Dict]]:
+    ) -> list[tuple[str, float, dict]]:
         """Поиск похожих векторов"""
         try:
             query_list = self._prepare_vector(query_vector)
@@ -266,7 +273,7 @@ class MilvusDatabase:
             num_entities = self.collection.num_entities
             return f"Milvus DB healthy with {num_entities} vectors"
         except Exception as e:
-            return f"Milvus DB error: {str(e)}"
+            return f"Milvus DB error: {e!s}"
     
     def count(self) -> int:
         """Количество векторов в БД"""

@@ -1,10 +1,10 @@
 import base64
+from datetime import datetime
 import io
 import json
 import logging
+from typing import Any
 import uuid
-from datetime import datetime
-from typing import Any, Dict
 
 import numpy as np
 from PIL import Image
@@ -17,6 +17,7 @@ from app.ml.processor import get_detector, get_encoder
 from app.models import Crop, ImageModel, ProcessStatus, Sample, Vector
 from app.utils import ColorExtractor, hash_image
 
+
 logger = logging.getLogger(__name__)
 detector = get_detector()
 encoder = get_encoder()
@@ -28,7 +29,7 @@ class MLProcessingWorker:
         self.vector_db = vector_db
         self._running = False
     
-    async def process_image_message(self, key: str, message: Dict[str, Any]):
+    async def process_image_message(self, key: str, message: dict[str, Any]):
         """Обработка сообщения с изображением"""
         sample_id = None
         
@@ -154,8 +155,8 @@ class MLProcessingWorker:
         db: Session,
         sample: Sample,
         image_bytes: bytes,
-        metadata: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any]
+    ) -> dict[str, Any]:
         """Обрабатывает изображение и сохраняет кропы"""
         detector = get_detector()
         encoder = get_encoder()

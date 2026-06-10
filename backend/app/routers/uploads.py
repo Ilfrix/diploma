@@ -1,7 +1,6 @@
+from datetime import datetime
 import io
 import mimetypes
-from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
@@ -13,10 +12,11 @@ from app.database import get_db
 from app.minio_client import minio_client
 from app.models import ImageModel, Sample, User
 
+
 router = APIRouter(prefix="/api/uploads", tags=["uploads"])
 
 
-def get_image_path_from_sample(sample: Sample) -> Optional[str]:
+def get_image_path_from_sample(sample: Sample) -> str | None:
     """Получить путь к изображению в MinIO из семпла через связанную таблицу Image"""
     if sample and sample.image:
         if minio_client.file_exists(sample.image.image_path):
@@ -24,7 +24,7 @@ def get_image_path_from_sample(sample: Sample) -> Optional[str]:
     return None
 
 
-def find_object_by_pattern(user_id: str, image_id: str) -> Optional[str]:
+def find_object_by_pattern(user_id: str, image_id: str) -> str | None:
     """Найти объект в MinIO по паттерну (для совместимости со старыми данными)"""
     # Паттерн: samples/{user_id}/{image_id}/*
     prefix = f"samples/{user_id}/{image_id}/"
@@ -136,7 +136,7 @@ async def get_image_thumbnail(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create thumbnail: {str(e)}"
+            detail=f"Failed to create thumbnail: {e!s}"
         )
 
 
@@ -204,7 +204,7 @@ async def get_sample_image(
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create thumbnail: {str(e)}"
+                detail=f"Failed to create thumbnail: {e!s}"
             )
     
     # Возвращаем временную ссылку на оригинал

@@ -1,10 +1,10 @@
 import logging
-from typing import List, Tuple
 
 import numpy as np
 from PIL import Image
 
 from app.triton_client import TritonYOLODetector
+
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ class ImageDetector:
             logger.error(f"Triton inference failed: {e}")
             return {"objects": [], "count": 0, "boxes": [], "classes": [], "confidences": []}
         
-    def get_crops(self, image: Image.Image, bboxes: List[List[float]], original_size: Tuple[int, int] = None):
+    def get_crops(self, image: Image.Image, bboxes: list[list[float]], original_size: tuple[int, int] = None):
         """
         Вырезание кропов с учетом масштабирования
         

@@ -1,8 +1,8 @@
 """
 Модуль для работы с MinIO S3
 """
-import io
 from datetime import timedelta
+import io
 
 from fastapi import HTTPException, UploadFile, status
 from minio import Minio
@@ -75,7 +75,7 @@ class MinIOClient:
         except S3Error as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to upload file to MinIO: {str(e)}"
+                detail=f"Failed to upload file to MinIO: {e!s}"
             )
     
     def upload_uploadfile(
@@ -129,7 +129,7 @@ class MinIOClient:
         except S3Error as e:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"File not found in MinIO: {str(e)}"
+                detail=f"File not found in MinIO: {e!s}"
             )
     
     def delete_file(self, object_path: str) -> bool:
@@ -178,7 +178,7 @@ class MinIOClient:
         except S3Error as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to generate file URL: {str(e)}"
+                detail=f"Failed to generate file URL: {e!s}"
             )
     
     def file_exists(self, object_path: str) -> bool:
@@ -287,7 +287,7 @@ class MinIOClient:
         except S3Error as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to copy file: {str(e)}"
+                detail=f"Failed to copy file: {e!s}"
             )
     
     def health_check(self) -> dict:

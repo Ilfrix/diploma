@@ -1,9 +1,9 @@
 import logging
-from typing import List
 
 import numpy as np
 import timm
 import torch
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class ImageEncoder:
             self.model = None
 
     
-    def encode(self, images: List) -> np.ndarray:
+    def encode(self, images: list) -> np.ndarray:
         """Извлечение эмбеддинга изображения"""
         if self.model is None:
             return np.random.rand(512)

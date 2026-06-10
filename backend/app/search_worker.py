@@ -1,8 +1,8 @@
 import base64
+from datetime import datetime
 import io
 import logging
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -14,6 +14,7 @@ from app.ml.processor import get_detector, get_encoder
 from app.models import Crop, ProcessStatus, Sample, SearchRequest
 from app.utils import COLOR_NAMES
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +24,7 @@ class SearchWorker:
     def __init__(self, vector_db: MilvusDatabase):
         self.vector_db = vector_db
     
-    async def process_search_message(self, key: str, message: Dict[str, Any]):
+    async def process_search_message(self, key: str, message: dict[str, Any]):
         """Обработка поискового запроса - вызывается из kafka_search_consumer"""
         request_id = message.get("request_id")
         image_data_b64 = message.get("image_data")
@@ -61,9 +62,9 @@ class SearchWorker:
     def _perform_search(
         self,
         image_bytes: bytes,
-        metadata: Dict[str, Any],
+        metadata: dict[str, Any],
         db: Session
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Выполняет поиск похожих изображений (синхронный метод)"""
         detector = get_detector()
         encoder = get_encoder()
@@ -105,10 +106,10 @@ class SearchWorker:
     def _format_results(
         self,
         similar_vectors: list,
-        color_filter: Optional[str],
+        color_filter: str | None,
         limit: int,
         db: Session
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Форматирует результаты поиска"""
         similar_images = []
         
@@ -173,9 +174,9 @@ class SearchWorker:
         self,
         db: Session,
         request_id: str,
-        result: Optional[Dict],
+        result: dict | None,
         status: ProcessStatus,
-        error: str = None
+        error: str = ''
     ):
         """Обновляет результат запроса"""
         update_data = {

@@ -1,9 +1,7 @@
-import os
 from datetime import datetime
-from typing import List, Optional
+import os
 
-from fastapi import (APIRouter, Depends, File, Form, HTTPException, UploadFile,
-                     status)
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -14,6 +12,7 @@ from app.minio_client import minio_client
 from app.models import ImageModel, ProcessStatus, Sample, User
 from app.schemas import SampleResponse, SampleUpdate
 from app.utils import hash_image
+
 
 router = APIRouter(prefix="/api/samples", tags=["samples"])
 
@@ -28,7 +27,7 @@ def set_vector_db(db):
 @router.post("", response_model=SampleResponse, status_code=status.HTTP_202_ACCEPTED)
 async def create_new_sample(
     name: str = Form(...),
-    description: Optional[str] = Form(None),
+    description: str | None = Form(None),
     image: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -123,7 +122,7 @@ async def create_new_sample(
             minio_client.delete_file(object_path)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to queue image for processing: {str(e)}"
+            detail=f"Failed to queue image for processing: {e!s}"
         )
     
     return sample
@@ -379,11 +378,11 @@ async def delete_sample(
     return {"message": "Sample deleted successfully"}
 
 
-@router.get("", response_model=List[SampleResponse])
+@router.get("", response_model=list[SampleResponse])
 async def list_samples(
     skip: int = 0,
     limit: int = 100,
-    status_filter: Optional[ProcessStatus] = None,
+    status_filter: ProcessStatus | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

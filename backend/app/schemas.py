@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -26,11 +26,11 @@ class TokenData(BaseModel):
 # ========== Sample schemas ==========
 class SampleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
 
 class SampleUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
 
 class ProcessStatusEnum(str, Enum):
     PENDING = "pending"
@@ -41,11 +41,11 @@ class ProcessStatusEnum(str, Enum):
 class SampleResponse(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     status: ProcessStatusEnum
-    error_message: Optional[str] = None
-    isOwner: Optional[bool] = False
-    owner_name: Optional[str] = None
+    error_message: str | None = None
+    isOwner: bool | None = False
+    owner_name: str | None = None
     created_at: datetime
     updated_at: datetime
     image: Optional['ImageResponse'] = None
@@ -58,9 +58,9 @@ class ImageResponse(BaseModel):
     id: str
     image_path: str
     image_hash: str
-    mime_type: Optional[str] = None
+    mime_type: str | None = None
     created_at: datetime
-    crops: Optional[List['CropResponse']] = None
+    crops: list['CropResponse'] | None = None
     
     class Config:
         from_attributes = True
@@ -84,10 +84,10 @@ class CropResponse(BaseModel):
     bbox_y1: float
     bbox_x2: float
     bbox_y2: float
-    class_name: Optional[str] = None
-    confidence: Optional[float] = None
+    class_name: str | None = None
+    confidence: float | None = None
     created_at: datetime
-    vector: Optional[VectorResponse] = None
+    vector: VectorResponse | None = None
     
     class Config:
         from_attributes = True
@@ -96,16 +96,16 @@ class CropResponse(BaseModel):
 class SimilarImage(BaseModel):
     sample_id: str
     name: str
-    description: Optional[str]
+    description: str | None
     similarity_score: float
     image_id: str
-    image_url: Optional[str] = None
+    image_url: str | None = None
 
 class SimilarResponse(BaseModel):
     query_sample_id: str
     query_name: str
-    similar_images: List[SimilarImage]
-    processing_time_ms: Optional[float] = None
+    similar_images: list[SimilarImage]
+    processing_time_ms: float | None = None
 
 
 SampleResponse.model_rebuild()

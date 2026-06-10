@@ -138,7 +138,7 @@ class TestSearchRouter:
                 assert isinstance(data, list)
     
     def test_get_sample_vectors(self, client, auth_headers, db_session, test_user):
-        """Получение информации о векторах семпла"""
+        """Получение информации по векторам семпла"""
         
         image = ImageModel(
             image_path="test/path.jpg",

@@ -1,6 +1,5 @@
-import uuid
 from datetime import datetime, timedelta
-from typing import List, Optional
+import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -9,11 +8,11 @@ from app.auth import get_current_user
 from app.database import get_db
 from app.kafka_producer import kafka_producer
 from app.ml.processor import process_image_with_crops
-from app.models import (Crop, ImageModel, ProcessStatus, Sample, SearchRequest,
-                        User)
+from app.models import Crop, ImageModel, ProcessStatus, Sample, SearchRequest, User
 from app.models import Vector as VectorModel
 from app.schemas import CropResponse, SimilarImage, SimilarResponse
 from app.utils import COLOR_NAMES
+
 
 router = APIRouter(prefix="/api", tags=["search"])
 
@@ -126,7 +125,7 @@ async def get_similar(
     )
 
 
-@router.get("/samples/{sample_id}/crops", response_model=List[CropResponse])
+@router.get("/samples/{sample_id}/crops", response_model=list[CropResponse])
 async def get_sample_crops(
     sample_id: str,
     current_user: User = Depends(get_current_user),
@@ -199,7 +198,7 @@ async def get_sample_vectors(
     return {"vectors": vectors_info, "count": len(vectors_info)}
 
 
-@router.get("/search/by-crop/{crop_id}/similar", response_model=List[SimilarImage])
+@router.get("/search/by-crop/{crop_id}/similar", response_model=list[SimilarImage])
 async def search_similar_by_crop(
     crop_id: str,
     limit: int = 10,
@@ -274,10 +273,10 @@ async def search_similar_by_crop(
     return similar_images
 
 
-@router.post("/search/similar", response_model=List[Optional[SimilarImage]])
+@router.post("/search/similar", response_model=list[SimilarImage | None])
 async def search_similar_by_image(
     image: UploadFile = File(...),
-    color: Optional[str] = None,
+    color: str | None = None,
     limit: int = 10,
     threshold: float = 0.7,
     current_user: User = Depends(get_current_user),
@@ -459,7 +458,7 @@ async def get_crop_info(
 @router.post("/search/async")
 async def search_similar_async(
     image: UploadFile = File(...),
-    color: Optional[str] = None,
+    color: str | None = None,
     limit: int = 10,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

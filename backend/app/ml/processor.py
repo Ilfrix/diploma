@@ -1,7 +1,7 @@
 import io
 import logging
+from typing import Any
 import uuid
-from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from PIL import Image
@@ -12,6 +12,7 @@ from app.ml.detector import ImageDetector
 from app.ml.encoder import ImageEncoder
 from app.models import Crop, ImageModel, Vector
 from app.utils import hash_image
+
 
 # Глобальные экземпляры
 detector = None
@@ -35,7 +36,7 @@ def process_image_with_crops(
     image_id: str = None,
     image_path: str = None,
     mime_type: str = "image/jpeg"
-) -> Tuple[List[np.ndarray], Dict[str, Any], List[Dict[str, Any]]]:
+) -> tuple[list[np.ndarray], dict[str, Any], list[dict[str, Any]]]:
     """
     Обработка изображения с сохранением кропов
     
@@ -85,9 +86,9 @@ def process_image_with_crops(
 def save_crops_to_database(
     db: Session,
     image_id: str,
-    crops_data: List[Dict[str, Any]],
-    milvus_ids: List[str]
-) -> List[Crop]:
+    crops_data: list[dict[str, Any]],
+    milvus_ids: list[str]
+) -> list[Crop]:
     """Сохраняет кропы в базу данных"""
     saved_crops = []
     

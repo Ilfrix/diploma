@@ -1,11 +1,12 @@
 import asyncio
+from collections.abc import Awaitable, Callable
 import json
 import logging
-from typing import Awaitable, Callable, Optional
 
 from aiokafka import AIOKafkaConsumer
 
 from app.config import config
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class KafkaConsumerManager:
         self.topics = topics
         self.consumer: AIOKafkaConsumer = None
         self._running = False
-        self._message_handler: Optional[Callable] = None
+        self._message_handler: Callable | None = None
     
     async def start(self, message_handler: Callable[[str, dict], Awaitable[None]]):
         """Запуск консюмера с обработчиком сообщений"""

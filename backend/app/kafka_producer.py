@@ -1,12 +1,13 @@
 import base64
+from datetime import datetime
 import json
 import logging
-from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from aiokafka import AIOKafkaProducer
 
 from app.config import config
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class KafkaProducerManager:
             self._running = False
             logger.info("Kafka producer stopped")
     
-    async def send_message(self, topic: str, key: str, value: Dict[str, Any]):
+    async def send_message(self, topic: str, key: str, value: dict[str, Any]):
         """Отправка сообщения в Kafka"""
         if not self._running:
             raise RuntimeError("Kafka producer is not running")
@@ -48,7 +49,7 @@ class KafkaProducerManager:
             raise
     
     async def send_image_for_processing(self, image_id: str, image_bytes: bytes, 
-                                       metadata: Dict[str, Any]):
+                                       metadata: dict[str, Any]):
         """Отправка изображения на обработку"""
         import base64
         
@@ -70,7 +71,7 @@ class KafkaProducerManager:
         self,
         request_id: str,
         image_bytes: bytes,
-        metadata: Dict[str, Any]
+        metadata: dict[str, Any]
     ):
         """Отправка запроса на поиск"""
         

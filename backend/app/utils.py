@@ -1,8 +1,8 @@
 import hashlib
-from typing import Tuple
 
 import cv2
 import numpy as np
+
 
 color_map = {
     "red": (180, 40, 40),
@@ -66,7 +66,7 @@ class ColorExtractor:
         return np.sqrt(np.sum(w * (np.array(rgb1) - np.array(rgb2)) ** 2)) / 255.0
 
     @staticmethod
-    def color_distance(rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int]) -> float:
+    def color_distance(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
         """
         Евклидово расстояние в RGB пространстве, нормализованное от 0 до 1
         
@@ -77,14 +77,14 @@ class ColorExtractor:
         return distance / max_distance
     
     @staticmethod
-    def color_name_to_rgb(color_name: str) -> Tuple[int, int, int]:
+    def color_name_to_rgb(color_name: str) -> tuple[int, int, int]:
         """Преобразует название цвета в RGB"""
         return color_map.get(color_name.lower(), (128, 128, 128))
     
     @staticmethod
     def matches_color(
-        image_color: Tuple[int, int, int], 
-        target_color: Tuple[int, int, int],
+        image_color: tuple[int, int, int], 
+        target_color: tuple[int, int, int],
         tolerance: float = 0.3
     ) -> bool:
         """Проверяет, соответствует ли цвет изображения целевому"""

@@ -1,18 +1,22 @@
 import asyncio
+import io
 from unittest.mock import MagicMock, patch
 
-import numpy as np
-import pytest
+from fastapi import UploadFile
 from fastapi.testclient import TestClient
+import numpy as np
+from PIL import Image
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.auth import create_access_token, get_current_user
+from app.auth import create_access_token, get_current_user, hash_password
 from app.database import Base, get_db
-from app.models import User
-# ВАЖНО: Импортируем app ДО определения фикстур
+from app.models import Crop, ImageModel, ProcessStatus, Sample, User, Vector
+from app.routers import samples, search
 from main import app
+
 
 # Тестовая БД SQLite
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db?cache=shared"
@@ -48,8 +52,6 @@ def db_session(db_engine):
 
 @pytest.fixture
 def test_user(db_session):
-    """Тестовый пользователь"""
-    from app.auth import hash_password
     
     user = User(
         username="testuser",
@@ -65,7 +67,6 @@ def test_user(db_session):
 @pytest.fixture
 def test_user2(db_session):
     """Второй тестовый пользователь"""
-    from app.auth import hash_password
     
     user = User(
         username="testuser2",
@@ -115,7 +116,7 @@ class MockMilvusDatabase:
             del self.vectors[vid]
     
     def search_similar(self, query_vector: np.ndarray, k: int = 10, 
-                      threshold: float = 0.7, user_id: str = None):
+                      threshold: float = 0.7, user_id: str | None = None):
         query = query_vector.tolist() if isinstance(query_vector, np.ndarray) else query_vector
         results = []
         
@@ -256,9 +257,7 @@ def client(db_session, test_user, mock_milvus):
     
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
-    
-    # Устанавливаем мок для векторной БД в роутерах
-    from app.routers import samples, search
+
     samples.vector_db = mock_milvus
     search.vector_db = mock_milvus
     
@@ -271,9 +270,6 @@ def client(db_session, test_user, mock_milvus):
 @pytest.fixture
 def test_image_bytes():
     """Создание тестового изображения"""
-    import io
-
-    from PIL import Image
     
     img = Image.new('RGB', (100, 100), color='red')
     img_byte_arr = io.BytesIO()
@@ -285,9 +281,6 @@ def test_image_bytes():
 @pytest.fixture
 def test_image_file(test_image_bytes):
     """Тестовый файл изображения"""
-    import io
-
-    from fastapi import UploadFile
     
     return UploadFile(
         filename="test.jpg",
@@ -300,7 +293,6 @@ def test_image_file(test_image_bytes):
 @pytest.fixture
 def test_sample(db_session, test_user):
     """Создание тестового семпла"""
-    from app.models import ImageModel, ProcessStatus, Sample
     
     image = ImageModel(
         image_path="samples/test/path.jpg",
@@ -328,7 +320,6 @@ def test_sample(db_session, test_user):
 @pytest.fixture
 def test_crop(db_session, test_sample):
     """Создание тестового кропа"""
-    from app.models import Crop, Vector
     
     crop = Crop(
         image_id=test_sample.image_id,

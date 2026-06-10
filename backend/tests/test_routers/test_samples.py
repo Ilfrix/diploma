@@ -30,7 +30,7 @@ class TestSamplesRouter:
             assert response.status_code == 202
     
     def test_create_sample_invalid_file_type(self, client, auth_headers):
-        """Создание семпла с не-изображением"""
+        """Создание семпла, не-изображение."""
         files = {
             "image": ("test.txt", b"not an image", "text/plain")
         }
@@ -75,7 +75,7 @@ class TestSamplesRouter:
             assert "duplicate" in response2.json()["detail"].lower()
     
     def test_get_sample(self, client, auth_headers, db_session, test_user):
-        """Получение информации о семпле"""
+        """Получение информации по семплу."""
         # Создаем тестовый семпл
         sample = Sample(
             user_id=test_user.id,
@@ -145,7 +145,7 @@ class TestSamplesRouter:
         assert all("name" in item for item in data)
     
     def test_list_samples_with_filter(self, client, auth_headers, db_session, test_user):
-        """Список семплов с фильтром по статусу"""
+        """Список семплов, фильтр по статусу."""
         sample1 = Sample(
             user_id=test_user.id,
             name="Pending Sample",
@@ -213,7 +213,7 @@ class TestSamplesRouter:
     
     def test_get_sample_stats(self, client, auth_headers, db_session, test_user):
         """Получение статистики по семплам"""
-        # Создаем семплы с разными статусами
+        # Создаем семплы, разные статусы
         samples = [
             Sample(user_id=test_user.id, name="Sample 1", status=ProcessStatus.PROCESSED),
             Sample(user_id=test_user.id, name="Sample 2", status=ProcessStatus.PENDING),

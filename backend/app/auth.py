@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 import bcrypt
-import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+import jwt
 from sqlalchemy.orm import Session
 
 from app.config import config
@@ -13,7 +12,7 @@ from app.models import User
 from app.schemas import TokenData
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """Создание JWT токена"""
     to_encode = data.copy()
     if expires_delta:

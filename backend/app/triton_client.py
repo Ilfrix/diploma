@@ -1,5 +1,3 @@
-from typing import Dict, List, Tuple
-
 import cv2
 import numpy as np
 import tritonclient.http as httpclient
@@ -33,7 +31,7 @@ class TritonYOLODetector:
         ]
         self.target_names = ['bench', 'chair', 'couch', 'bed', 'dinning table']
     
-    def preprocess(self, image: np.ndarray, target_size: Tuple[int, int] = (640, 640)) -> np.ndarray:
+    def preprocess(self, image: np.ndarray, target_size: tuple[int, int] = (640, 640)) -> np.ndarray:
         """
         Подготовка изображения для Triton
         """
@@ -50,7 +48,7 @@ class TritonYOLODetector:
         batched = np.expand_dims(transposed, axis=0)
         return batched
     
-    def postprocess(self, output: np.ndarray, confidence_threshold: float = 0.25, iou_threshold: float = 0.45) -> List[Dict]:
+    def postprocess(self, output: np.ndarray, confidence_threshold: float = 0.25, iou_threshold: float = 0.45) -> list[dict]:
         """
         Постобработка выхода YOLO
         
@@ -117,7 +115,7 @@ class TritonYOLODetector:
         
         return detections
     
-    def nms(self, boxes: np.ndarray, scores: np.ndarray, iou_threshold: float = 0.45) -> List[int]:
+    def nms(self, boxes: np.ndarray, scores: np.ndarray, iou_threshold: float = 0.45) -> list[int]:
         """
         Non-Maximum Suppression
         

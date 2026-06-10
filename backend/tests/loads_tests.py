@@ -1,22 +1,17 @@
-"""
-Скрипт для нагрузочного тестирования API
-Измеряет время выполнения для разных объемов данных
-С многократными итерациями для стабильности результатов
-"""
-
+from datetime import datetime
 import io
 import json
 import statistics
 import threading
 import time
+import traceback
 import uuid
-from datetime import datetime
-from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
-import requests
 from PIL import Image, ImageDraw
+import requests
+
 
 # Конфигурация
 API_BASE_URL = "http://localhost:8000"
@@ -98,7 +93,7 @@ class LoadTester:
         img_byte_arr.seek(0)
         return img_byte_arr.getvalue()
     
-    def create_sample(self, name: str, image_bytes: bytes, retry_count: int = 2) -> Dict:
+    def create_sample(self, name: str, image_bytes: bytes, retry_count: int = 2) -> dict:
         """Создание одного сэмпла с повторами при ошибках"""
         headers = {"Authorization": f"Bearer {self.access_token}"}
         files = {
@@ -166,7 +161,7 @@ class LoadTester:
         
         return {"success": False, "error": "Max retries exceeded"}
     
-    def create_samples_batch(self, count: int, delay_between: float = 0.05) -> Dict:
+    def create_samples_batch(self, count: int, delay_between: float = 0.05) -> dict:
         """Создание пакета сэмплов с задержкой между запросами"""
         results = []
         successful = 0
@@ -199,7 +194,7 @@ class LoadTester:
             "results": results
         }
     
-    def run_single_test(self, count: int, iteration: int) -> Dict:
+    def run_single_test(self, count: int, iteration: int) -> dict:
         """Выполнение одного теста для заданного количества сэмплов"""
         print(f"    Итерация {iteration + 1}...", end=" ", flush=True)
         
@@ -269,7 +264,7 @@ class LoadTester:
         
         return deleted
     
-    def run_load_test(self, sample_counts: List[int], iterations: int = 10):
+    def run_load_test(self, sample_counts: list[int], iterations: int = 10):
         """Запуск нагрузочного теста с множественными итерациями"""
         print("="*70)
         print("ЗАПУСК НАГРУЗОЧНОГО ТЕСТИРОВАНИЯ")
@@ -323,7 +318,7 @@ class LoadTester:
         
         return all_results
     
-    def analyze_complexity(self, results: Dict):
+    def analyze_complexity(self, results: dict):
         """Анализ временной сложности алгоритмов"""
         print("\n" + "="*70)
         print("АНАЛИЗ ВРЕМЕННОЙ СЛОЖНОСТИ (на основе усредненных данных)")
@@ -398,7 +393,7 @@ class LoadTester:
     
     def plot_results(self, counts, times, total_times, time_stds, total_time_stds):
         """Построение графиков с error bars"""
-        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+        _, axes = plt.subplots(1, 2, figsize=(14, 6))
         
         # График 1: Среднее время на сэмпл
         ax1 = axes[0]
@@ -440,7 +435,7 @@ class LoadTester:
         print(f"\n📊 График сохранен в {filename}")
         plt.show()
     
-    def save_results_to_json(self, results: Dict):
+    def save_results_to_json(self, results: dict):
         """Сохранение результатов в JSON файл"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"load_test_results_{timestamp}.json"
@@ -489,7 +484,6 @@ def main():
         print("\n\n⚠ Тестирование прервано пользователем")
     except Exception as e:
         print(f"\n❌ Ошибка: {e}")
-        import traceback
         traceback.print_exc()
     
     print("\n✅ Тестирование завершено!")

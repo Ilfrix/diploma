@@ -1,6 +1,6 @@
-import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,8 +13,7 @@ from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
 from app.ml.processor import init_ml_models
 from app.ml.worker import MLProcessingWorker
-from app.routers import (auth_router, samples_router, search_router,
-                         upload_router)
+from app.routers import auth_router, samples_router, search_router, upload_router
 from app.routers.search import set_vector_db
 from app.search_worker import SearchWorker
 

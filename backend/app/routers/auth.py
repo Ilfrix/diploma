@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models import User
 from app.schemas import Token, UserCreate, UserLogin
 
+
 router = APIRouter(prefix="/api", tags=["authentication"])
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)

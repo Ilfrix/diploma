@@ -153,7 +153,6 @@ dependencies = [
 ]
 
 [tool.ruff]
-# Общие настройки
 line-length = 88
 target-version = "py311"
 exclude = [
@@ -164,7 +163,6 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-# Включаем основные правила для бэкенда
 select = [
     "E",     # pycodestyle ошибки
     "F",     # Pyflakes (неиспользуемые импорты/переменные)
@@ -179,21 +177,21 @@ select = [
     "RUF",   # Специфичные правила Ruff
 ]
 
-# Игнорируем проблемные правила
 ignore = [
-    "E501",   # Длина строки (за это отвечает ruff format)
-    "B008",   # Call-выражения в аргументах по умолчанию (нужно для FastAPI Depends)
-    "S101",   # Использование assert (разрешено в тестах)
+    "E501",      # Длина строки (за это отвечает ruff format)
+    "B008",      # Call-выражения в аргументах по умолчанию (нужно для FastAPI Depends)
+    "S101",      # Использование assert (разрешено в тестах)
+    "RUF001",   # Буквы о
+    "RUF002",   # Буквы а
+    "RUF003"    # Буквы e
 ]
 
-# Настройка сложности функций (для бэкенда можно повысить)
 [tool.ruff.lint.pylint]
 max-args = 10           # Максимум аргументов функции
 max-returns = 6         # Максимум return выражений
 max-branches = 20       # Максимум ветвлений
 max-statements = 80     # Максимум выражений в функции
 
-# Настройка сортировки импортов (isort)
 [tool.ruff.lint.isort]
 lines-after-imports = 2
 lines-between-types = 1
@@ -207,7 +205,6 @@ known-third-party = [
     "pydantic"
 ]
 
-# Группы импортов
 section-order = [
     "future",
     "standard-library",
@@ -216,24 +213,15 @@ section-order = [
     "local-folder",
 ]
 
-# Игнорируем определенные файлы
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-    "S101",      # Разрешаем assert в тестах
-    "PLR2004",   # Разрешаем магические числа в тестах
-    "B011",      # Разрешаем пустые except в тестах
+    "S101",      # assert в тестах
+    "PLR2004",   # Магические числа в тестах
+    "B011"      # Пустые except в тестах
 ]
 
-# Настройки форматтера (замена black)
 [tool.ruff.format]
 quote-style = "double"        # Используем двойные кавычки
 indent-style = "space"        # Пробелы для отступов
 skip-magic-trailing-comma = false
 line-ending = "auto"
-
-# Дополнительно: авто-исправление
-# [tool.ruff.lint.fixable]
-# Какие правила можно автоматически исправлять
-# fixable = ["ALL"]
-# Какие правила НЕЛЬЗЯ автоматически исправлять
-# unfixable = ["B", "S", "PLW"]

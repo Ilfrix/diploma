@@ -45,7 +45,6 @@ class TestUploadsRouter:
     
     def test_get_sample_thumbnail(self, client, auth_headers, db_session, test_user, mock_minio):
         """Получение миниатюры изображения"""
-        from app.models import ImageModel, Sample
         
         with patch('app.routers.uploads.minio_client', mock_minio):
             # Создаем тестовое изображение
@@ -90,7 +89,6 @@ class TestUploadsRouter:
     
     def test_get_presigned_url(self, client, auth_headers, db_session, test_user, mock_minio):
         """Получение подписанной URL"""
-        from app.models import ImageModel, Sample
         
         image = ImageModel(
             image_path="samples/user123/sample456.jpg",
@@ -126,7 +124,6 @@ class TestUploadsRouter:
     
     def test_download_sample_image(self, client, auth_headers, db_session, test_user, mock_minio):
         """Скачивание изображения"""
-        from app.models import ImageModel, Sample
         
         img = Image.new('RGB', (100, 100), color='green')
         img_byte_arr = io.BytesIO()
@@ -163,8 +160,7 @@ class TestUploadsRouter:
             assert "attachment" in response.headers["content-disposition"]
     
     def test_get_image_info(self, client, auth_headers, db_session, test_user, mock_minio):
-        """Получение информации об изображении"""
-        from app.models import ImageModel, Sample
+        """Получение информации по изображению."""
         
         image = ImageModel(
             image_path="samples/user123/sample456.jpg",
@@ -205,7 +201,6 @@ class TestUploadsRouter:
     
     def test_check_image_exists(self, client, auth_headers, db_session, test_user, mock_minio):
         """Проверка существования изображения"""
-        from app.models import ImageModel, Sample
         
         image = ImageModel(
             image_path="samples/user123/sample456.jpg",
@@ -246,7 +241,6 @@ class TestUploadsRouter:
     
     def test_batch_presigned_urls(self, client, auth_headers, db_session, test_user, mock_minio):
         """Batch получение подписанных URL"""
-        from app.models import ImageModel, Sample
         
         samples = []
         for i in range(3):
