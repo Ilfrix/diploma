@@ -137,7 +137,7 @@ async def get_image_thumbnail(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create thumbnail: {e!s}"
-        )
+        ) from e
 
 
 @router.get("/sample/{sample_id}/image")

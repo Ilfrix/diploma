@@ -289,3 +289,5 @@ class MilvusDatabase:
             logger.info("Disconnected from Milvus")
         except Exception as e:
             logger.error(f"Error closing connection: {e}")
+
+vector_db = MilvusDatabase()

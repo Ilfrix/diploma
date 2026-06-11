@@ -123,7 +123,7 @@ async def create_new_sample(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to queue image for processing: {e!s}"
-        )
+        ) from e
     
     return sample
 
@@ -331,6 +331,9 @@ async def delete_sample(
     db: Session = Depends(get_db)
 ):
     from main import vector_db
+    
+    print('delete_sample')
+    print(vector_db)
     """Удалить эталон"""
     
     sample = db.query(Sample).filter(

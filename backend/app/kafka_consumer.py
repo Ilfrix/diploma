@@ -39,7 +39,7 @@ class KafkaConsumerManager:
         logger.info(f"Kafka consumer started for topics: {self.topics}")
         
         # Запуск цикла обработки сообщений
-        asyncio.create_task(self._consume_loop())
+        self._task = asyncio.create_task(self._consume_loop())
     
     async def stop(self):
         """Остановка консюмера"""
@@ -65,7 +65,7 @@ class KafkaConsumerManager:
             if self._running:
                 # Перезапуск консюмера при ошибке
                 await asyncio.sleep(5)
-                asyncio.create_task(self._consume_loop())
+                self._task = asyncio.create_task(self._consume_loop())
 
 kafka_consumer = KafkaConsumerManager(
     config.KAFKA_BOOTSTRAP_SERVERS,

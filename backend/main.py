@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
     )
     
     # Инициализация векторной БД
-    global vector_db, ml_worker
+    # global vector_db, ml_worker
     vector_db = MilvusDatabase(
         host=config.MILVUS_HOST,
         port=config.MILVUS_PORT,

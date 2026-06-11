@@ -170,10 +170,8 @@ def save_original_image_to_database(
 
 
 def get_detector():
-    global detector
     return detector
 
 
 def get_encoder():
-    global encoder
     return encoder

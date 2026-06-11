@@ -76,7 +76,7 @@ class MinIOClient:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to upload file to MinIO: {e!s}"
-            )
+            ) from e
     
     def upload_uploadfile(
         self, 
@@ -130,7 +130,7 @@ class MinIOClient:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"File not found in MinIO: {e!s}"
-            )
+            ) from e
     
     def delete_file(self, object_path: str) -> bool:
         """
@@ -179,7 +179,7 @@ class MinIOClient:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to generate file URL: {e!s}"
-            )
+            ) from e
     
     def file_exists(self, object_path: str) -> bool:
         """
@@ -288,7 +288,7 @@ class MinIOClient:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to copy file: {e!s}"
-            )
+            ) from e
     
     def health_check(self) -> dict:
         """Проверка состояния подключения к MinIO"""

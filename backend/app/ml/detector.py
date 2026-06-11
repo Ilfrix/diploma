@@ -84,7 +84,7 @@ class ImageDetector:
             logger.error(f"Triton inference failed: {e}")
             return {"objects": [], "count": 0, "boxes": [], "classes": [], "confidences": []}
         
-    def get_crops(self, image: Image.Image, bboxes: list[list[float]], original_size: tuple[int, int] = None):
+    def get_crops(self, image: Image.Image, bboxes: list[list[float]], original_size: tuple[int, int]):
         """
         Вырезание кропов с учетом масштабирования
         
