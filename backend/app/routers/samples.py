@@ -1,7 +1,16 @@
 from datetime import datetime
 import os
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -15,13 +24,6 @@ from app.utils import hash_image
 
 
 router = APIRouter(prefix="/api/samples", tags=["samples"])
-
-# Инициализация векторной БД (будет установлена из main)
-vector_db = None
-
-def set_vector_db(db):
-    global vector_db
-    vector_db = db
 
 
 @router.post("", response_model=SampleResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -327,13 +329,11 @@ async def update_sample(
 @router.delete("/{sample_id}")
 async def delete_sample(
     sample_id: str,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    from main import vector_db
-    
-    print('delete_sample')
-    print(vector_db)
+    vector_db = request.app.state.vector_db
     """Удалить эталон"""
     
     sample = db.query(Sample).filter(

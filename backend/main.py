@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import config
@@ -14,7 +14,6 @@ from app.minio_client import minio_client
 from app.ml.processor import init_ml_models
 from app.ml.worker import MLProcessingWorker
 from app.routers import auth_router, samples_router, search_router, upload_router
-from app.routers.search import set_vector_db
 from app.search_worker import SearchWorker
 
 
@@ -37,21 +36,22 @@ async def lifespan(app: FastAPI):
     # config.ensure_directories()
     
     # Инициализация ML моделей
-    init_ml_models(
+    detector, encoder = init_ml_models(
         # detector_model_path=f"{config.MODEL_PATH}/yolov8n.pt",
         detector_model_path='localhost:8010',
         encoder_model_path="tf_efficientnetv2_m.in21k"
     )
+    app.state.detector = detector
+    app.state.encode = encoder
     
     # Инициализация векторной БД
-    # global vector_db, ml_worker
     vector_db = MilvusDatabase(
         host=config.MILVUS_HOST,
         port=config.MILVUS_PORT,
         collection_name=config.MILVUS_COLLECTION_NAME,
         dim=config.VECTOR_DIM,
     )
-    set_vector_db(vector_db)
+    app.state.vector_db = vector_db
     
     # Инициализация Kafka продюсера
     await kafka_producer.start()
@@ -101,6 +101,12 @@ app.include_router(auth_router)
 app.include_router(samples_router)
 app.include_router(search_router)
 app.include_router(upload_router)
+
+
+def get_vector_db(request: Request) -> MilvusDatabase:
+    if not hasattr(request.app.state, 'vector_db'):
+        raise HTTPException(503, "Vector DB not initialized")
+    return request.app.state.vector_db
 
 # Health check
 @app.get("/api/health")

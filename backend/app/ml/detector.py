@@ -84,7 +84,7 @@ class ImageDetector:
             logger.error(f"Triton inference failed: {e}")
             return {"objects": [], "count": 0, "boxes": [], "classes": [], "confidences": []}
         
-    def get_crops(self, image: Image.Image, bboxes: list[list[float]], original_size: tuple[int, int]):
+    def get_crops(self, image: Image.Image, bboxes: list[list[float]]):
         """
         Вырезание кропов с учетом масштабирования
         
@@ -96,10 +96,8 @@ class ImageDetector:
         crops = []
         
         # Получаем оригинальный размер
-        if original_size is None:
-            orig_w, orig_h = image.size  # PIL: (width, height)
-        else:
-            orig_w, orig_h = original_size
+        orig_w, orig_h = image.size  # PIL: (width, height)
+
         
         # Коэффициенты масштабирования
         scale_x = orig_w / 640.0

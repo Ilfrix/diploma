@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
@@ -16,17 +16,11 @@ from app.utils import COLOR_NAMES
 
 router = APIRouter(prefix="/api", tags=["search"])
 
-# Будет установлен из main
-vector_db = None
-
-def set_vector_db(db):
-    global vector_db
-    vector_db = db
-
 
 @router.get("/samples/{sample_id}/similar", response_model=SimilarResponse)
 async def get_similar(
     sample_id: str,
+    request: Request,
     limit: int = 10,
     threshold: float = 0.7,
     use_all_crops: bool = False,  # Если True - ищем по всем кропам, если False - по первому
@@ -35,7 +29,7 @@ async def get_similar(
 ):
     """Найти ближайшие изображения к эталону"""
     print('sample_id', sample_id)
-
+    vector_db = request.app.state.vector_db
     # Получение эталона
     sample = db.query(Sample).filter(
         Sample.id == sample_id,
@@ -201,13 +195,14 @@ async def get_sample_vectors(
 @router.get("/search/by-crop/{crop_id}/similar", response_model=list[SimilarImage])
 async def search_similar_by_crop(
     crop_id: str,
+    request: Request,
     limit: int = 10,
     threshold: float = 0.7,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Поиск похожих изображений по ID кропа"""
-    
+    vector_db = request.app.state.vector_db
     # Получаем кроп
     crop = db.query(Crop).filter(Crop.id == crop_id).first()
     if not crop:
@@ -275,6 +270,7 @@ async def search_similar_by_crop(
 
 @router.post("/search/similar", response_model=list[SimilarImage | None])
 async def search_similar_by_image(
+    request: Request,
     image: UploadFile = File(...),
     color: str | None = None,
     limit: int = 10,
@@ -283,7 +279,7 @@ async def search_similar_by_image(
     db: Session = Depends(get_db)
 ):
     """Поиск похожих изображений по загруженному файлу (без сохранения)"""
-    
+    vector_db = request.app.state.vector_db
     # Валидация файла
     if not image.content_type or not image.content_type.startswith("image/"):
         return []
