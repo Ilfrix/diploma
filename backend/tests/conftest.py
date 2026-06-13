@@ -261,6 +261,10 @@ def client(db_session, test_user, mock_milvus):
     samples.vector_db = mock_milvus
     search.vector_db = mock_milvus
     
+    app.state.vector_db = mock_milvus
+    app.state.detector = MagicMock()
+    app.state.encoder = MagicMock()
+
     client = TestClient(app)
     yield client
     
