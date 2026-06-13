@@ -57,13 +57,13 @@ async def lifespan(app: FastAPI):
     await kafka_producer.start()
     
     # Инициализация ML worker
-    ml_worker = MLProcessingWorker(vector_db)
+    ml_worker = MLProcessingWorker(vector_db, detector, encoder)
     await ml_worker.start()
     
     # Запуск Kafka консюмера с обработчиком
     await kafka_consumer.start(ml_worker.process_image_message)
 
-    search_worker = SearchWorker(vector_db)
+    search_worker = SearchWorker(vector_db, detector, encoder)
     
     # Запуск Kafka consumer для поисковых запросов
     await kafka_search_consumer.start(search_worker.process_search_message)

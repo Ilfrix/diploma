@@ -303,7 +303,9 @@ async def search_similar_by_image(
     embeddings, _det, _crop_data = process_image_with_crops(
         image_bytes=image_bytes,
         db=None,  # Не сохраняем в БД
-        image_id=None
+        image_id=None,
+        detector=request.app.state.detector,
+        encoder=request.app.state.encoder
     )
     if not embeddings:
         return []

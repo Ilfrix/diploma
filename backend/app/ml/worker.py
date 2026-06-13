@@ -13,20 +13,21 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.milvus_db import MilvusDatabase
 from app.minio_client import minio_client
-from app.ml.processor import get_detector, get_encoder
+from app.ml.detector import ImageDetector
+from app.ml.encoder import ImageEncoder
 from app.models import Crop, ImageModel, ProcessStatus, Sample, Vector
 from app.utils import ColorExtractor, hash_image
 
 
 logger = logging.getLogger(__name__)
-detector = get_detector()
-encoder = get_encoder()
 
 class MLProcessingWorker:
     """Worker для асинхронной обработки изображений из Kafka"""
     
-    def __init__(self, vector_db: MilvusDatabase):
+    def __init__(self, vector_db: MilvusDatabase, detector: ImageDetector, encoder: ImageEncoder ):
         self.vector_db = vector_db
+        self.detector = detector
+        self.encoder = encoder
         self._running = False
     
     async def process_image_message(self, key: str, message: dict[str, Any]):
@@ -158,8 +159,8 @@ class MLProcessingWorker:
         metadata: dict[str, Any]
     ) -> dict[str, Any]:
         """Обрабатывает изображение и сохраняет кропы"""
-        detector = get_detector()
-        encoder = get_encoder()
+        detector = self.detector
+        encoder = self.encoder
         image = Image.open(io.BytesIO(image_bytes))
         
         # Детекция объектов

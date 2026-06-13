@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.milvus_db import MilvusDatabase
-from app.ml.processor import get_detector, get_encoder
+from app.ml.detector import ImageDetector
+from app.ml.encoder import ImageEncoder
 from app.models import Crop, ProcessStatus, Sample, SearchRequest
 from app.utils import COLOR_NAMES
 
@@ -21,8 +22,10 @@ logger = logging.getLogger(__name__)
 class SearchWorker:
     """Worker для асинхронной обработки поисковых запросов из Kafka"""
     
-    def __init__(self, vector_db: MilvusDatabase):
+    def __init__(self, vector_db: MilvusDatabase, detector: ImageDetector, encoder: ImageEncoder):
         self.vector_db = vector_db
+        self.detector = detector
+        self.encoder = encoder
     
     async def process_search_message(self, key: str, message: dict[str, Any]):
         """Обработка поискового запроса - вызывается из kafka_search_consumer"""
@@ -66,8 +69,8 @@ class SearchWorker:
         db: Session
     ) -> dict[str, Any]:
         """Выполняет поиск похожих изображений (синхронный метод)"""
-        detector = get_detector()
-        encoder = get_encoder()
+        detector = self.detector
+        encoder = self.encoder
         
         if detector is None or encoder is None:
             raise RuntimeError("ML models not initialized")
