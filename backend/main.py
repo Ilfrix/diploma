@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
+from typing import cast
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,24 +27,25 @@ ml_worker = None
 search_worker = None
 minio = minio_client
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения"""
     # Startup
     logger.info("Starting up...")
-    
+
     # Создание директорий
     # config.ensure_directories()
-    
+
     # Инициализация ML моделей
     detector, encoder = init_ml_models(
         # detector_model_path=f"{config.MODEL_PATH}/yolov8n.pt",
-        detector_model_path='localhost:8010',
-        encoder_model_path="tf_efficientnetv2_m.in21k"
+        detector_model_path="localhost:8010",
+        encoder_model_path="tf_efficientnetv2_m.in21k",
     )
     app.state.detector = detector
     app.state.encode = encoder
-    
+
     # Инициализация векторной БД
     vector_db = MilvusDatabase(
         host=config.MILVUS_HOST,
@@ -52,39 +54,40 @@ async def lifespan(app: FastAPI):
         dim=config.VECTOR_DIM,
     )
     app.state.vector_db = vector_db
-    
+
     # Инициализация Kafka продюсера
     await kafka_producer.start()
-    
+
     # Инициализация ML worker
     ml_worker = MLProcessingWorker(vector_db, detector, encoder)
     await ml_worker.start()
-    
+
     # Запуск Kafka консюмера с обработчиком
     await kafka_consumer.start(ml_worker.process_image_message)
 
     search_worker = SearchWorker(vector_db, detector, encoder)
-    
+
     # Запуск Kafka consumer для поисковых запросов
     await kafka_search_consumer.start(search_worker.process_search_message)
-    
+
     # Создание таблиц БД
     Base.metadata.create_all(bind=engine)
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down...")
     await kafka_consumer.stop()
     await ml_worker.stop()
     await kafka_producer.stop()
 
+
 # Создание FastAPI приложения
 app = FastAPI(
     title="FlexSearch",
     description="Система для поиска похожих изображений",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS настройки
@@ -104,9 +107,10 @@ app.include_router(upload_router)
 
 
 def get_vector_db(request: Request) -> MilvusDatabase:
-    if not hasattr(request.app.state, 'vector_db'):
+    if not hasattr(request.app.state, "vector_db"):
         raise HTTPException(503, "Vector DB not initialized")
-    return request.app.state.vector_db
+    return cast(MilvusDatabase, request.app.state.vector_db)
+
 
 # Health check
 @app.get("/api/health")
@@ -120,10 +124,12 @@ async def health_check():
             "kafka_producer": "running" if kafka_producer._running else "stopped",
             "kafka_consumer": "running" if kafka_consumer._running else "stopped",
             "ml_worker": "running" if ml_worker and ml_worker._running else "stopped",
-            "minio": minio.health_check()
-        }
+            "minio": minio.health_check(),
+        },
     }
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

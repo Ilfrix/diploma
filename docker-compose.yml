@@ -139,7 +139,7 @@ services:
       milvus:
         condition: service_healthy
     restart: unless-stopped
-  
+
   triton:
     image: nvcr.io/nvidia/tritonserver:23.10-py3
     container_name: triton_yolo
@@ -172,4 +172,3 @@ volumes:
   postgres_data:
   etcd-data:
   milvus-data:
-  

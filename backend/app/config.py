@@ -3,7 +3,8 @@ import os
 from dotenv import load_dotenv
 
 
-load_dotenv('app/1.env')  # Этот путь относительно место запуска main.py
+load_dotenv("app/1.env")  # Этот путь относительно место запуска main.py
+
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "key")
@@ -22,18 +23,21 @@ class Config:
 
     KAFKA_SEARCH_TOPIC = os.getenv("KAFKA_SEARCH_TOPIC", "search-requests")
     KAFKA_SEARCH_RESULT_TOPIC = os.getenv("KAFKA_SEARCH_RESULT_TOPIC", "search-results")
-    KAFKA_SEARCH_CONSUMER_GROUP = os.getenv("KAFKA_SEARCH_CONSUMER_GROUP", "search-processor-group")
+    KAFKA_SEARCH_CONSUMER_GROUP = os.getenv(
+        "KAFKA_SEARCH_CONSUMER_GROUP", "search-processor-group"
+    )
 
     # Milvus
     MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
     MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
     MILVUS_COLLECTION_NAME = os.getenv("MILVUS_COLLECTION_NAME", "image_vectors")
     VECTOR_DIM = int(os.getenv("VECTOR_DIM", "1280"))
-    
+
     # S3
     MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
     MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
     MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME")
+
 
 config = Config()

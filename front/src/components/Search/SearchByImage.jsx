@@ -104,7 +104,7 @@ const ColorSwatch = ({ color, rgb, isSelected, onClick }) => {
 // Отдельная группа цветов
 const ColorGroup = ({ title, colors, selectedColor, onColorSelect }) => {
   if (colors.length === 0) return null;
-  
+
   return (
     <div className="mb-6">
       <h4 className="text-sm font-medium text-gray-500 mb-2 sticky top-0 bg-gray-50 py-1">
@@ -169,7 +169,7 @@ const SearchByImage = () => {
         setSearchResults(data);
         setSearchStatus('processed');
         if (data.length === 0) {
-          toast(selectedColor ? `Изображений цвета "${COLOR_PALETTE[selectedColor]?.name}" не найдено` : 'Похожих изображений не найдено', 
+          toast(selectedColor ? `Изображений цвета "${COLOR_PALETTE[selectedColor]?.name}" не найдено` : 'Похожих изображений не найдено',
             { icon: '🔍' });
         } else {
           toast.success(`Найдено ${data.length} похожих изображений`);
@@ -194,7 +194,7 @@ const SearchByImage = () => {
 
     const formData = new FormData();
     formData.append('image', imageFile);
-    
+
     await asyncSearchMutation.mutateAsync(formData);
   };
 
@@ -211,7 +211,7 @@ const SearchByImage = () => {
 
   const getStatusDisplay = () => {
     if (!searchStatus) return null;
-    
+
     switch (searchStatus) {
       case 'queued':
         return { text: 'В очереди...', icon: <IoTimeOutline className="w-4 h-4" />, color: 'text-yellow-600' };
@@ -247,7 +247,7 @@ const SearchByImage = () => {
         {/* Левая колонка - форма загрузки */}
         <div className="card p-6">
           <h2 className="text-xl font-semibold mb-4">Загрузите изображение</h2>
-          
+
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-4
@@ -261,7 +261,7 @@ const SearchByImage = () => {
               <p>Перетащите изображение или кликните для выбора</p>
             )}
           </div>
-          
+
           {imagePreview && (
             <div className="mb-4">
               <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" />
@@ -273,7 +273,7 @@ const SearchByImage = () => {
               </button>
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -288,7 +288,7 @@ const SearchByImage = () => {
                 className="w-full"
               />
             </div>
-            
+
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-gray-700">Порог схожести: {threshold}</label>
@@ -316,7 +316,7 @@ const SearchByImage = () => {
                   ▼
                 </span>
               </button>
-              
+
               {showColorFilter && (
                 <div className="bg-gray-50 rounded-lg p-3 mb-2">
                   <div className="flex justify-between items-start mb-3">
@@ -355,7 +355,7 @@ const SearchByImage = () => {
                       </button>
                     )}
                   </div>
-                  
+
                   {/* Две колонки */}
                   <div style={{ display: 'flex', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
@@ -381,14 +381,14 @@ const SearchByImage = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <p className="text-xs text-gray-400 mt-3 pt-2 border-t">
                     Наведите на название цвета, чтобы увидеть оттенок
                   </p>
                 </div>
               )}
             </div>
-            
+
             <button
               onClick={handleSearch}
               disabled={!imageFile || isLoading}
@@ -406,7 +406,7 @@ const SearchByImage = () => {
                 </>
               )}
             </button>
-            
+
             {/* Индикатор статуса */}
             {statusDisplay && (
               <div className={`mt-3 p-2 rounded-lg text-center ${
@@ -425,7 +425,7 @@ const SearchByImage = () => {
             )}
           </div>
         </div>
-        
+
         {/* Правая колонка - результаты */}
         <div>
           {searchResults ? (

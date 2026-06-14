@@ -49,27 +49,27 @@ api.interceptors.response.use(
 // Базовые методы для работы с API
 export const searchApi = {
   // Синхронный поиск (старый, для совместимости)
-  searchSync: (formData, params) => 
+  searchSync: (formData, params) =>
     api.post('/search/similar', formData, {
       params,
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
-  
+
   // Асинхронный поиск (отправка запроса)
-  searchAsync: (formData, params) => 
+  searchAsync: (formData, params) =>
     api.post('/search/async', formData, {
       params,
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
-  
+
   // Получение результата по request_id
-  getSearchResult: (requestId) => 
+  getSearchResult: (requestId) =>
     api.get(`/search/result/${requestId}`),
-  
+
   // Получение похожих по ID образца
-  getSimilar: (sampleId, params) => 
+  getSimilar: (sampleId, params) =>
     api.get(`/samples/${sampleId}/similar`, { params }),
-  
+
   // CRUD для образцов
   getSamples: (params) => api.get('/samples', { params }),
   getSample: (id) => api.get(`/samples/${id}`),

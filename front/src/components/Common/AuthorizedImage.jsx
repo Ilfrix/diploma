@@ -2,12 +2,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthContext';
 
-const AuthorizedImage = ({ 
-  sampleId, 
-  alt, 
-  className, 
+const AuthorizedImage = ({
+  sampleId,
+  alt,
+  className,
   size = 200,
-  thumbnail = true 
+  thumbnail = true
 }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [error, setError] = useState(false);
@@ -70,18 +70,18 @@ const AuthorizedImage = ({
 
   if (error || !imageUrl) {
     return (
-      <img 
-        src="/placeholder.jpg" 
-        alt={alt} 
+      <img
+        src="/placeholder.jpg"
+        alt={alt}
         className={className}
       />
     );
   }
 
   return (
-    <img 
-      src={imageUrl} 
-      alt={alt} 
+    <img
+      src={imageUrl}
+      alt={alt}
       className={className}
     />
   );

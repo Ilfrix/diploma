@@ -15,14 +15,14 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       const currentUser = authService.getCurrentUser();
       const currentToken = localStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
-      
+
       if (currentUser && currentToken) {
         setUser(currentUser);
         setToken(currentToken);
       }
       setLoading(false);
     };
-    
+
     initAuth();
   }, []);
 

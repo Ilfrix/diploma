@@ -87,12 +87,12 @@ const SampleForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!isEditing && !imageFile) {
       toast.error('Выберите изображение');
       return;
     }
-    
+
     if (isEditing) {
         if (!canModify) {
           toast.error('У вас нет прав на редактирование этого эталона');
@@ -128,7 +128,7 @@ const SampleForm = () => {
       <h1 className="text-3xl font-bold mb-6">
         {isEditing ? 'Редактировать эталон' : 'Создать новый эталон'}
       </h1>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-gray-700 mb-2">Название *</label>
@@ -142,7 +142,7 @@ const SampleForm = () => {
             placeholder="Введите название эталона"
           />
         </div>
-        
+
         <div>
           <label className="block text-gray-700 mb-2">Описание</label>
           <textarea
@@ -154,7 +154,7 @@ const SampleForm = () => {
             placeholder="Введите описание (необязательно)"
           />
         </div>
-        
+
         {/* Показываем существующее изображение при редактировании */}
         {isEditing && sample?.id && !imageFile && !previewError && (
           <div>
@@ -181,7 +181,7 @@ const SampleForm = () => {
             </p>
           </div>
         )}
-        
+
         {/* Показываем новое изображение при замене или создании */}
         {imagePreview && (
           <div>
@@ -189,10 +189,10 @@ const SampleForm = () => {
               {isEditing ? 'Новое изображение' : 'Изображение'}
             </label>
             <div className="relative inline-block">
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                className="max-h-64 rounded-lg" 
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-h-64 rounded-lg"
               />
               <button
                 type="button"
@@ -204,7 +204,7 @@ const SampleForm = () => {
             </div>
           </div>
         )}
-        
+
         {/* Показываем дропзону только если нет изображения */}
         {(!isEditing || (isEditing && !sample?.image_path) || imageFile) && (
           <div>
@@ -227,7 +227,7 @@ const SampleForm = () => {
             </div>
           </div>
         )}
-        
+
         <div className="flex space-x-4">
           <button
             type="submit"

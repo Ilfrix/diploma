@@ -22,7 +22,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       await login(formData.username, formData.password);
       toast.success('Вход выполнен успешно!');
@@ -39,7 +39,7 @@ const Login = () => {
     <div className="max-w-md mx-auto mt-10">
       <div className="bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Вход в систему</h2>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Имя пользователя</label>
@@ -53,7 +53,7 @@ const Login = () => {
               placeholder="Введите имя пользователя"
             />
           </div>
-          
+
           <div className="mb-6">
             <label className="block text-gray-700 mb-2">Пароль</label>
             <input
@@ -66,7 +66,7 @@ const Login = () => {
               placeholder="Введите пароль"
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
@@ -75,7 +75,7 @@ const Login = () => {
             {loading ? 'Вход...' : 'Войти'}
           </button>
         </form>
-        
+
         <p className="mt-4 text-center text-gray-600">
           Нет аккаунта?{' '}
           <Link to="/register" className="text-blue-600 hover:underline">

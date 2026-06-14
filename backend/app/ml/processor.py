@@ -4,7 +4,6 @@ from typing import Any
 
 import numpy as np
 from PIL import Image
-from sqlalchemy.orm import Session
 
 from app.ml.detector import ImageDetector
 from app.ml.encoder import ImageEncoder
@@ -24,56 +23,58 @@ def init_ml_models(detector_model_path: str, encoder_model_path: str):
 
 def process_image_with_crops(
     image_bytes: bytes,
-    db: Session,
-    image_id: str,
-    image_path: str,
+    # db: Session,
+    # image_id: str,
+    # image_path: str,
     detector: ImageDetector,
     encoder: ImageEncoder,
     mime_type: str = "image/jpeg",
-) -> tuple[list[np.ndarray], dict[str, Any], list[dict[str, Any]]]:
+) -> tuple[np.ndarray, dict[str, Any], list[dict[str, Any]]]:
     """
     Обработка изображения с сохранением кропов
-    
+
     Returns:
         Tuple: (embeddings, detections, crops_data)
     """
     # Загрузка изображения
     image = Image.open(io.BytesIO(image_bytes))
-    
+
     # Детекция объектов
     detections = detector.detect(np.array(image)) if detector else {}
     logger.info(detections)
-    
+
     # Получаем кропы
     crops = []
-    if detector and detections.get('boxes'):
-        crops = detector.get_crops(image, detections.get('boxes', []))
+    if detector and detections.get("boxes"):
+        crops = detector.get_crops(image, detections.get("boxes", []))
 
     # Извлечение эмбеддингов для каждого кропа
-    embeddings = []
+    embeddings: np.ndarray = np.array([])
     if encoder and crops:
         embeddings = encoder.encode(crops)
-    
+
     if not embeddings:
-        embeddings = [np.random.rand(1280) for _ in range(len(crops))]
-    
+        embeddings = np.array([np.random.rand(1280) for _ in range(len(crops))])
+
     # Подготовка данных о кропах
     crops_data = []
-    boxes = detections.get('boxes', [])
-    classes = detections.get('classes', [])
-    confidences = detections.get('confidences', [])
-    
+    boxes = detections.get("boxes", [])
+    classes = detections.get("classes", [])
+    confidences = detections.get("confidences", [])
+
     for idx, (crop_image, bbox, class_name, confidence, embedding) in enumerate(
         zip(crops, boxes, classes, confidences, embeddings, strict=True)
     ):
-        crops_data.append({
-            "index": idx,
-            "image": crop_image,
-            "bbox": bbox,
-            "class_name": class_name,
-            "confidence": confidence,
-            "embedding": embedding
-        })
+        crops_data.append(
+            {
+                "index": idx,
+                "image": crop_image,
+                "bbox": bbox,
+                "class_name": class_name,
+                "confidence": confidence,
+                "embedding": embedding,
+            }
+        )
     return embeddings, detections, crops_data
 
 
@@ -85,20 +86,20 @@ def process_image_with_crops(
 # ) -> list[Crop]:
 #     """Сохраняет кропы в базу данных"""
 #     saved_crops = []
-    
+
 #     for crop_data, milvus_id in zip(crops_data, milvus_ids, strict=True):
 #         # Сохраняем кроп в MinIO
 #         crop_path = f"crops/{image_id}/{crop_data['index']}.jpg"
 #         crop_bytes_io = io.BytesIO()
 #         crop_data['image'].save(crop_bytes_io, format='JPEG', quality=85)
 #         crop_bytes = crop_bytes_io.getvalue()
-        
+
 #         minio_client.upload_file(
 #             file_data=crop_bytes,
 #             object_path=crop_path,
 #             content_type="image/jpeg"
 #         )
-        
+
 #         # Создаем запись в таблице crops
 #         crop = Crop(
 #             id=str(uuid.uuid4()),
@@ -114,7 +115,7 @@ def process_image_with_crops(
 #         )
 #         db.add(crop)
 #         db.flush()
-        
+
 #         # Создаем запись в таблице vectors
 #         vector = Vector(
 #             id=str(uuid.uuid4()),
@@ -122,9 +123,9 @@ def process_image_with_crops(
 #             milvus_id=milvus_id
 #         )
 #         db.add(vector)
-        
+
 #         saved_crops.append(crop)
-    
+
 #     db.commit()
 #     return saved_crops
 
@@ -139,15 +140,15 @@ def process_image_with_crops(
 #     """Сохраняет оригинальное изображение в базу данных"""
 #     if not image_hash:
 #         image_hash = hash_image(image_bytes)
-    
+
 #     # Проверяем, существует ли уже такое изображение
 #     existing_image = db.query(ImageModel).filter(
 #         ImageModel.image_hash == image_hash
 #     ).first()
-    
+
 #     if existing_image:
 #         return existing_image
-    
+
 #     # Создаем новое изображение
 #     image = ImageModel(
 #         id=str(uuid.uuid4()),
@@ -155,9 +156,9 @@ def process_image_with_crops(
 #         image_hash=image_hash,
 #         mime_type=mime_type
 #     )
-    
+
 #     db.add(image)
 #     db.commit()
 #     db.refresh(image)
-    
+
 #     return image

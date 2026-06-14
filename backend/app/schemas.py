@@ -2,41 +2,48 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ========== Auth schemas ==========
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
-    email: str = Field(..., pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    email: str = Field(..., pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
     password: str = Field(..., min_length=6)
+
 
 class UserLogin(BaseModel):
     username: str
     password: str
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     user_id: str
     username: str
+
 
 # ========== Sample schemas ==========
 class SampleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
 
+
 class SampleUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=255)
     description: str | None = None
+
 
 class ProcessStatusEnum(StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
     PROCESSED = "processed"
     FAILED = "failed"
+
 
 class SampleResponse(BaseModel):
     id: str
@@ -48,10 +55,10 @@ class SampleResponse(BaseModel):
     owner_name: str | None = None
     created_at: datetime
     updated_at: datetime
-    image: Optional['ImageResponse'] = None
-    
-    class Config:
-        from_attributes = True
+    image: Optional["ImageResponse"] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 # ========== Image schemas ==========
 class ImageResponse(BaseModel):
@@ -60,10 +67,10 @@ class ImageResponse(BaseModel):
     image_hash: str
     mime_type: str | None = None
     created_at: datetime
-    crops: list['CropResponse'] | None = None
-    
-    class Config:
-        from_attributes = True
+    crops: list["CropResponse"] | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 # ========== Crop schemas ==========
 class VectorResponse(BaseModel):
@@ -71,9 +78,9 @@ class VectorResponse(BaseModel):
     crop_id: str
     milvus_id: str
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class CropResponse(BaseModel):
     id: str
@@ -88,9 +95,9 @@ class CropResponse(BaseModel):
     confidence: float | None = None
     created_at: datetime
     vector: VectorResponse | None = None
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 # ========== Search/Similarity schemas ==========
 class SimilarImage(BaseModel):
@@ -100,6 +107,7 @@ class SimilarImage(BaseModel):
     similarity_score: float
     image_id: str
     image_url: str | None = None
+
 
 class SimilarResponse(BaseModel):
     query_sample_id: str

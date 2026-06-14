@@ -34,25 +34,25 @@ const Navbar = () => {
           <Link to="/samples" className="navbar-logo">
             FlexSearch
           </Link>
-          
+
           {/* Центральные кнопки навигации */}
           <div className="navbar-nav">
             <Link to="/samples" className="btn-nav">
               <FiHome size={18} />
               <span>Мои эталоны</span>
             </Link>
-            
+
             <Link to="/search" className="btn-nav">
               <FiSearch size={18} />
               <span>Поиск</span>
             </Link>
-            
+
             <Link to="/samples/create" className="btn-nav-primary">
               <FiPlus size={18} />
               <span>Создать</span>
             </Link>
           </div>
-          
+
           {/* Профиль пользователя - справа */}
           <div className="navbar-profile" ref={dropdownRef}>
             <button
@@ -63,12 +63,12 @@ const Navbar = () => {
                 <FiUser className="profile-avatar-icon" size={18} />
               </div>
               <span className="profile-username">{user.username}</span>
-              <FiChevronDown 
-                size={16} 
+              <FiChevronDown
+                size={16}
                 className={`profile-chevron ${isDropdownOpen ? 'rotate-180' : ''}`}
               />
             </button>
-            
+
             {/* Выпадающее меню */}
             {isDropdownOpen && (
               <div className="dropdown-menu">

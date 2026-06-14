@@ -4,13 +4,13 @@ import toast from 'react-hot-toast';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
+
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
-  
+
   const { user, loading, login: contextLogin, register: contextRegister, logout: contextLogout } = context;
-  
+
   const login = useCallback(async (username, password) => {
     try {
       await contextLogin(username, password);
@@ -22,7 +22,7 @@ export const useAuth = () => {
       return false;
     }
   }, [contextLogin]);
-  
+
   const register = useCallback(async (username, email, password) => {
     try {
       await contextRegister(username, email, password);
@@ -34,12 +34,12 @@ export const useAuth = () => {
       return false;
     }
   }, [contextRegister]);
-  
+
   const logout = useCallback(() => {
     contextLogout();
     toast.success('Вы вышли из системы');
   }, [contextLogout]);
-  
+
   return {
     user,
     isAuthenticated: !!user,

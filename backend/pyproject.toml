@@ -230,6 +230,7 @@ line-ending = "auto"
 [dependency-groups]
 dev = [
     "httpx>=0.24.0,<0.29.0",
+    "mypy>=1.13.0",
     "starlette>=0.27.0,<0.38.0",
 ]
 
@@ -240,4 +241,17 @@ dev = [
     "pytest-cov==5.0.0",
     "httpx==0.27.2",
     "starlette==0.27.0",
+    "pre-commit==4.0.1",  # Добавить
+    "mypy==1.13.0",        # Для проверки типов
+    "bandit==1.7.10",      # Для безопасности
+]
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = [
+    "tests/",
+    "alembic/",
+    "migrations/",
 ]

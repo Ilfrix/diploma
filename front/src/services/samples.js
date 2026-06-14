@@ -12,7 +12,7 @@ class SearchService {
   async searchByImage(formData, limit = 10, threshold = 0.7, color = null) {
     const params = { limit, threshold };
     if (color) params.color = color;
-    
+
     const response = await searchApi.searchSync(formData, params);
     return response.data;
   }
@@ -30,19 +30,19 @@ class SearchService {
 
     const params = { limit, threshold };
     if (color) params.color = color;
-    
+
     // 1. Отправляем запрос на асинхронную обработку
     const response = await searchApi.searchAsync(formData, params);
     const { request_id } = response.data;
-    
+
     // 2. Уведомляем об отправке
     if (onStatusChange) {
       onStatusChange({ status: 'queued', requestId: request_id });
     }
-    
+
     // 3. Polling результата
     const result = await this._pollSearchResult(request_id, maxAttempts, intervalMs, onStatusChange);
-    
+
     return result;
   }
 
@@ -52,36 +52,36 @@ class SearchService {
    */
   async _pollSearchResult(requestId, maxAttempts, intervalMs, onStatusChange) {
     let attempts = 0;
-    
+
     while (attempts < maxAttempts) {
       try {
         const response = await searchApi.getSearchResult(requestId);
         const data = response.data;
-        
+
         // Уведомляем об изменении статуса
         if (onStatusChange) {
           onStatusChange({ status: data.status, requestId });
         }
-        
+
         // Завершен успешно
         if (data.status === 'processed') {
           return data.result?.similar_images || [];
         }
-        
+
         // Завершен с ошибкой
         if (data.status === 'failed') {
           throw new Error(data.error || 'Search failed');
         }
-        
+
         // Истек срок действия
         if (data.status === 'expired') {
           throw new Error('Search request expired');
         }
-        
+
         // Статусы 'pending' или 'processing' - продолжаем ждать
         await this._delay(intervalMs);
         attempts++;
-        
+
       } catch (error) {
         if (error.response?.status === 404) {
           // Запрос еще не создан, ждем
@@ -92,7 +92,7 @@ class SearchService {
         throw error;
       }
     }
-    
+
     throw new Error('Search timeout');
   }
 
@@ -110,7 +110,7 @@ class SearchService {
   async getSimilar(sampleId, limit = 12, threshold = 0.6, color = null) {
     const params = { limit, threshold };
     if (color) params.color = color;
-    
+
     const response = await searchApi.getSimilar(sampleId, params);
     return response.data;
   }
@@ -147,6 +147,6 @@ export const samplesService = {
   getSimilar: (id, limit, threshold, color) => searchService.getSimilar(id, limit, threshold, color),
   searchByImage: (formData, limit, threshold, color) => searchService.searchByImage(formData, limit, threshold, color),
   // Новый асинхронный метод
-  searchByImageAsync: (formData, limit, threshold, color, options) => 
+  searchByImageAsync: (formData, limit, threshold, color, options) =>
     searchService.searchByImageAsync(formData, limit, threshold, color, options),
 };

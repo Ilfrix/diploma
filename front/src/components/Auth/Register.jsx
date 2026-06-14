@@ -23,19 +23,19 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast.error('Пароли не совпадают');
       return;
     }
-    
+
     if (formData.password.length < 6) {
       toast.error('Пароль должен содержать минимум 6 символов');
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       await register(formData.username, formData.email, formData.password);
       toast.success('Регистрация успешна!');
@@ -52,7 +52,7 @@ const Register = () => {
     <div className="max-w-md mx-auto mt-10">
       <div className="bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Регистрация</h2>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Имя пользователя</label>
@@ -67,7 +67,7 @@ const Register = () => {
               placeholder="Минимум 3 символа"
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Email</label>
             <input
@@ -80,7 +80,7 @@ const Register = () => {
               placeholder="example@mail.com"
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Пароль</label>
             <input
@@ -94,7 +94,7 @@ const Register = () => {
               placeholder="Минимум 6 символов"
             />
           </div>
-          
+
           <div className="mb-6">
             <label className="block text-gray-700 mb-2">Подтверждение пароля</label>
             <input
@@ -107,7 +107,7 @@ const Register = () => {
               placeholder="Повторите пароль"
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
@@ -116,7 +116,7 @@ const Register = () => {
             {loading ? 'Регистрация...' : 'Зарегистрироваться'}
           </button>
         </form>
-        
+
         <p className="mt-4 text-center text-gray-600">
           Уже есть аккаунт?{' '}
           <Link to="/login" className="text-blue-600 hover:underline">

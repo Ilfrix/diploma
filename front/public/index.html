@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#3B82F6" />
     <meta name="description" content="Система распознавания дубликатов изображений - поиск похожих изображений с использованием нейросетей" />
-    
+
     <meta name="keywords" content="распознавание изображений, поиск дубликатов, нейросети, компьютерное зрение, image recognition" />
     <meta name="author" content="Flexible Search System" />
     <meta name="robots" content="index, follow" />
-    
+
     <!-- Open Graph / Social Media -->
     <meta property="og:title" content="Flexible Search System" />
     <meta property="og:description" content="Система для поиска похожих и дублирующихся изображений" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/og-image.png" />
-    
+
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
-    
+
     <title>Flexible Search System - Поиск похожих изображений</title>
-    
+
     <style>
       /* Стили для предотвращения FOUC (Flash of Unstyled Content) */
       .no-js {
@@ -34,12 +34,12 @@
         text-align: center;
         padding: 20px;
       }
-      
+
       .no-js a {
         color: #ffd700;
         text-decoration: none;
       }
-      
+
       .loading-screen {
         position: fixed;
         top: 0;
@@ -53,7 +53,7 @@
         z-index: 9999;
         transition: opacity 0.5s ease-out;
       }
-      
+
       .loading-spinner {
         width: 50px;
         height: 50px;
@@ -62,11 +62,11 @@
         border-top-color: white;
         animation: spin 1s ease-in-out infinite;
       }
-      
+
       @keyframes spin {
         to { transform: rotate(360deg); }
       }
-      
+
       .loading-text {
         margin-top: 20px;
         color: white;
@@ -74,7 +74,7 @@
         text-align: center;
       }
     </style>
-    
+
     <script>
       // Убираем экран загрузки после загрузки React
       window.addEventListener('load', function() {
@@ -88,7 +88,7 @@
           }, 500);
         }
       });
-      
+
       // Проверка поддержки WebP
       function checkWebPSupport() {
         var canvas = document.createElement('canvas');
@@ -122,7 +122,7 @@
         </div>
       </div>
     </noscript>
-    
+
     <div id="loading-screen" class="loading-screen">
       <div>
         <div class="loading-spinner"></div>
@@ -132,9 +132,9 @@
         </div>
       </div>
     </div>
-    
+
     <div id="root"></div>
-    
+
     <!-- Service Worker для PWA (опционально) -->
     <script>
       if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {

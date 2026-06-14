@@ -51,7 +51,7 @@ const SampleList = () => {
               <SampleCard key={sample.id} sample={sample} />
             ))}
           </div>
-          
+
           <div className="flex justify-center mt-8 space-x-4">
             <button
               onClick={() => setPage(p => Math.max(0, p - 1))}

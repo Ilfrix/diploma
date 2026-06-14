@@ -12,24 +12,24 @@ export const useImageUpload = (options = {}) => {
     onSuccess,
     onError,
   } = options;
-  
+
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const validateFile = useCallback((file) => {
     if (!allowedTypes.includes(file.type)) {
       throw new Error(`Неподдерживаемый тип файла: ${file.type}. Разрешены: ${allowedTypes.join(', ')}`);
     }
-    
+
     if (file.size > maxSize) {
       throw new Error(`Файл слишком большой. Максимальный размер: ${maxSize / 1024 / 1024}MB`);
     }
-    
+
     return true;
   }, [allowedTypes, maxSize]);
-  
+
   const generatePreview = useCallback((file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -40,14 +40,14 @@ export const useImageUpload = (options = {}) => {
       reader.readAsDataURL(file);
     });
   }, []);
-  
+
   const addFiles = useCallback(async (newFiles) => {
     setError(null);
     const fileArray = Array.isArray(newFiles) ? newFiles : [newFiles];
-    
+
     const validFiles = [];
     const validPreviews = [];
-    
+
     for (const file of fileArray) {
       try {
         validateFile(file);
@@ -59,7 +59,7 @@ export const useImageUpload = (options = {}) => {
         if (onError) onError(err);
       }
     }
-    
+
     if (multiple) {
       setFiles(prev => [...prev, ...validFiles]);
       setPreviews(prev => [...prev, ...validPreviews]);
@@ -67,37 +67,37 @@ export const useImageUpload = (options = {}) => {
       setFiles(validFiles.slice(0, 1));
       setPreviews(validPreviews.slice(0, 1));
     }
-    
+
     if (validFiles.length > 0 && onSuccess) {
       onSuccess(validFiles);
     }
-    
+
     return validFiles;
   }, [validateFile, generatePreview, multiple, onSuccess, onError]);
-  
+
   const removeFile = useCallback((index) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
     setPreviews(prev => prev.filter((_, i) => i !== index));
   }, []);
-  
+
   const clearFiles = useCallback(() => {
     setFiles([]);
     setPreviews([]);
     setError(null);
   }, []);
-  
+
   const uploadToServer = useCallback(async (uploadFn, additionalData = {}) => {
     if (files.length === 0) {
       toast.error('Нет файлов для загрузки');
       return null;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const formData = new FormData();
-      
+
       if (multiple) {
         files.forEach((file, index) => {
           formData.append(`images[${index}]`, file);
@@ -105,13 +105,13 @@ export const useImageUpload = (options = {}) => {
       } else {
         formData.append('image', files[0]);
       }
-      
+
       Object.entries(additionalData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           formData.append(key, value);
         }
       });
-      
+
       const result = await uploadFn(formData);
       toast.success('Загрузка успешна!');
       return result;
@@ -124,7 +124,7 @@ export const useImageUpload = (options = {}) => {
       setLoading(false);
     }
   }, [files, multiple]);
-  
+
   return {
     files,
     previews,
