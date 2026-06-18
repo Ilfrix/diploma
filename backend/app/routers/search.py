@@ -483,7 +483,7 @@ async def search_similar_async(
     db: Session = Depends(get_db),
 ):
     print("search_async")
-    print(color)
+    print(f"color is {color}")
     request_id = str(uuid.uuid4())
 
     # 1. Сразу сохраняем в БД
