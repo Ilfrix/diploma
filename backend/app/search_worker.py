@@ -99,7 +99,7 @@ class SearchWorker:
         if crops:
             embeddings = encoder.encode(crops)
 
-        if not embeddings:
+        if embeddings.size == 0:
             return {"similar_images": [], "message": "No features extracted"}
 
         # Параметры поиска

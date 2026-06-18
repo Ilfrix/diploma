@@ -48,7 +48,7 @@ class ImageEncoder:
                 features = self.model(input_tensor)  # [1, 1280]
             embeddings.append(features.squeeze().numpy())
 
-        return embeddings
+        return np.array(embeddings)
 
     def is_loaded(self) -> bool:
         """Проверка загрузки модели"""
