@@ -10,3 +10,4 @@ models
 uploads
 vector_db
 *.db
+bin/
