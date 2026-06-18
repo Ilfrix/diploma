@@ -11,3 +11,4 @@ uploads
 vector_db
 *.db
 bin/
+*.egg-info/

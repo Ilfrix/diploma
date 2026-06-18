@@ -1,7 +1,9 @@
+from io import BytesIO
 from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
+import requests
 
 from app.models import Crop, ImageModel, ProcessStatus, Sample, Vector
 
@@ -114,9 +116,12 @@ class TestSearchRouter:
     ):
         """Поиск по загруженному изображению"""
         with patch("app.routers.search.process_image_with_crops") as mock_process:
+            resp = requests.get(
+                "https://www.royaloakindia.com/media/catalog/product/s/f/sf5026-3.jpg"
+            )
             mock_process.return_value = (
                 # [np.random.rand(512).tolist()],  # embeddings
-                [Image.open("/home/polyanskii/Pictures/projects_picture/sofa_1.jpeg")],
+                [Image.open(BytesIO(resp.content))],
                 [],  # detections
                 [],  # crops_data
             )
