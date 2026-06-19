@@ -182,7 +182,7 @@ class MLProcessingWorker:
         if encoder and crops:
             embeddings = encoder.encode(crops)
         print("second point")
-        if not embeddings:
+        if embeddings.size == 0:
             embeddings = np.array([np.random.rand(1280) for _ in range(len(crops))])
 
         saved_crops = []

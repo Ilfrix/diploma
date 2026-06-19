@@ -4,6 +4,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import config
 
 
+print("DB", config.DATABASE_URL)
+print("=" * 100)
 engine = create_engine(config.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

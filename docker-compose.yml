@@ -166,6 +166,42 @@ services:
               count: 1
               capabilities: [gpu]
 
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: diploma-frontend
+    ports:
+      - "3000:3000"  # Порт для доступа к фронтенду
+    environment:
+      - REACT_APP_API_URL=http://backend:8000  # URL бэкенда
+      - REACT_APP_WS_URL=ws://backend:8000/ws  # WebSocket если есть
+    # depends_on:
+    #   - backend  # Если бэкенд в Docker
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: diploma-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app  # Для разработки с горячей перезагрузкой
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      triton:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   kafka-data:
   minio-data:

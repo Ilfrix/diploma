@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     # Инициализация ML моделей
     detector, encoder = init_ml_models(
         # detector_model_path=f"{config.MODEL_PATH}/yolov8n.pt",
-        detector_model_path="localhost:8010",
+        detector_model_path="triton:8000",
         encoder_model_path="tf_efficientnetv2_m.in21k",
     )
     app.state.detector = detector
