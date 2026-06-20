@@ -4,7 +4,7 @@ import tritonclient.http as httpclient
 
 
 class TritonYOLODetector:
-    def __init__(self, url: str = "localhost:8010"):  # Ваш порт 8010
+    def __init__(self, url: str = "triton:8010"):  # Ваш порт 8010
         print(url)
         print("=" * 100)
         self.client = httpclient.InferenceServerClient(url=url)

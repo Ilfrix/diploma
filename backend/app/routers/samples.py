@@ -382,6 +382,7 @@ async def list_samples(
     db: Session = Depends(get_db),
 ):
     """Получить список всех эталонов пользователя с фильтрацией по статусу"""
+    print("LIST " * 100)
 
     query = db.query(Sample).filter(Sample.user_id == current_user.id)
 

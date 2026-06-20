@@ -73,8 +73,37 @@ async def get_uploaded_image(
             detail=f"Image with id '{image_id}' not found",
         )
 
+    # try:
+    #     image_bytes = minio_client.download_file(object_path)
+
+    #     # Определяем MIME тип
+    #     content_type = "image/jpeg"
+    #     if object_path.endswith(".png"):
+    #         content_type = "image/png"
+    #     elif object_path.endswith(".gif"):
+    #         content_type = "image/gif"
+    #     elif object_path.endswith(".webp"):
+    #         content_type = "image/webp"
+
+    #     return Response(
+    #         content=image_bytes,
+    #         media_type=content_type,
+    #         headers={
+    #             "Cache-Control": "public, max-age=3600",
+    #             "Content-Disposition": f"inline; filename={image_id}.jpg",
+    #         },
+    #     )
+    # except Exception as e:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail=f"Failed to load image: {e}",
+    #     )
+
     # Получаем временную ссылку и перенаправляем
     image_url = minio_client.get_file_url(object_path, expires=3600)
+    print("GET " * 100)
+    print(f"image_url {image_url}")
+    print(minio_client)
     return RedirectResponse(url=image_url)
 
 
@@ -194,6 +223,7 @@ async def get_sample_image(
             thumb_bytes = io.BytesIO()
             rgb_img.save(thumb_bytes, format="JPEG", quality=85, optimize=True)
             thumb_bytes.seek(0)
+            print("Response|" * 100)
 
             return Response(
                 content=thumb_bytes.getvalue(),
@@ -205,10 +235,31 @@ async def get_sample_image(
             )
         except Exception as e:
             print("Ошибка в get_sample_image", e)
+    content_type = sample.image.mime_type or "image/jpeg"
 
+    image_bytes = minio_client.download_file(image_path)
+    # Определяем расширение для имени файла
+    extension = "jpg"
+    if content_type == "image/png":
+        extension = "png"
+    elif content_type == "image/webp":
+        extension = "webp"
+    elif content_type == "image/gif":
+        extension = "gif"
+
+    return Response(
+        content=image_bytes,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "Content-Disposition": f"inline; filename=sample_{sample_id}.{extension}",
+        },
+    )
     # Возвращаем временную ссылку на оригинал
-    image_url = minio_client.get_file_url(image_path, expires=3600)
-    return RedirectResponse(url=image_url)
+    # print('REDIRECT= ' * 100)
+    # image_url = minio_client.get_file_url(image_path, expires=3600)
+    # print(f'Image_url = {image_url}')
+    # return RedirectResponse(url=image_url)
 
 
 @router.get("/sample/{sample_id}/presigned-url")

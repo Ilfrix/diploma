@@ -20,7 +20,7 @@ class MilvusDatabase:
 
     def __init__(
         self,
-        host: str = "localhost",
+        host: str = "milvus",
         port: str = "19530",
         collection_name: str = "embeddings",
         dim: int = 1280,

@@ -1,5 +1,6 @@
 # backend/Dockerfile
-FROM python:3.11-slim
+FROM python:3.11
+# FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
 
 # Устанавливаем системные зависимости (исправленные пакеты)
 RUN apt-get update && apt-get install -y \
@@ -11,7 +12,12 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
-
+# RUN apt-get update && apt-get install -y \
+#     python3.11 \
+#     python3-pip \
+#     libgl1 \
+#     libglib2.0-0 \
+#     && rm -rf /var/lib/apt/lists/*
 # Устанавливаем uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
