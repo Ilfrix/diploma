@@ -223,7 +223,6 @@ async def get_sample_image(
             thumb_bytes = io.BytesIO()
             rgb_img.save(thumb_bytes, format="JPEG", quality=85, optimize=True)
             thumb_bytes.seek(0)
-            print("Response|" * 100)
 
             return Response(
                 content=thumb_bytes.getvalue(),
@@ -255,11 +254,6 @@ async def get_sample_image(
             "Content-Disposition": f"inline; filename=sample_{sample_id}.{extension}",
         },
     )
-    # Возвращаем временную ссылку на оригинал
-    # print('REDIRECT= ' * 100)
-    # image_url = minio_client.get_file_url(image_path, expires=3600)
-    # print(f'Image_url = {image_url}')
-    # return RedirectResponse(url=image_url)
 
 
 @router.get("/sample/{sample_id}/presigned-url")
