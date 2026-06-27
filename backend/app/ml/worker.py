@@ -166,22 +166,20 @@ class MLProcessingWorker:
         image = Image.open(io.BytesIO(image_bytes))
 
         # Детекция объектов
-        print("before detector")
         detections = detector.detect(np.array(image)) if detector else {}
-        print("detection end")
         print(detections)
 
         crops = []
-        print("before")
+
         if detector and detections.get("boxes"):
             crops = detector.get_crops(image, detections.get("boxes", []))
-        print("get_crop")
+
         # Извлечение эмбеддингов для каждого кропа
         embeddings: np.ndarray = np.array([])
-        print("first point")
+
         if encoder and crops:
             embeddings = encoder.encode(crops)
-        print("second point")
+
         if embeddings.size == 0:
             embeddings = np.array([np.random.rand(1280) for _ in range(len(crops))])
 
