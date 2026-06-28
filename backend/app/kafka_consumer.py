@@ -15,7 +15,7 @@ class KafkaConsumerManager:
     """Менеджер Kafka консюмера"""
 
     def __init__(self, bootstrap_servers: str, group_id: str, topics: list):
-        print(f"KafkaConsumer {bootstrap_servers}")
+        logger.info(f"KafkaConsumer {bootstrap_servers}")
         self.bootstrap_servers = bootstrap_servers
         self.group_id = group_id
         self.topics = topics

@@ -181,9 +181,10 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./backend
+    #   dockerfile: Dockerfile
+    image: backend:3
     container_name: diploma-backend
     ports:
       - "8000:8000"

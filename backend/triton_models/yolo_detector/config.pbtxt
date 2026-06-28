@@ -1,13 +1,14 @@
 name: "yolo_detector"
 platform: "onnxruntime_onnx"
 max_batch_size: 8  # Максимальный батч
+default_model_filename: "yolo8_pretrain.onnx"
 
 # Экспортирована модель yolov8n.pt (изначальная, без дообучения)
 input [
   {
     name: "images"
     data_type: TYPE_FP32
-    dims: [3, 640, 640]  # [C, H, W] - проверьте формат!
+    dims: [3, 1024, 1024]  # [C, H, W] - проверьте формат!
   }
 ]
 
@@ -15,7 +16,7 @@ output [
   {
     name: "output0"
     data_type: TYPE_FP32
-    dims: [84, -1]  # Специальный вывод YOLO
+    dims: [5, -1]  # Специальный вывод YOLO
   }
 ]
 

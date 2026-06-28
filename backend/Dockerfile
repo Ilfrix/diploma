@@ -27,10 +27,14 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Копируем код
-COPY . .
+COPY ./app ./app
+COPY main.py .
+COPY ./models/models--timm--tf_efficientnetv2_m.in21k .
+COPY ./pyproject.toml .
+COPY uv.lock .
 
 # Устанавливаем зависимости
-RUN uv sync --no-dev --frozen
+RUN uv sync --no-dev
 
 EXPOSE 8000
 

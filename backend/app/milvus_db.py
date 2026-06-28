@@ -263,7 +263,10 @@ class MilvusDatabase:
         try:
             if self.collection is None:
                 raise RuntimeError("Milvus collection not initialized")
+
             query_list = self._prepare_vector(query_vector)
+            if isinstance(query_list, list) and isinstance(query_list[0], list):
+                query_list = query_list[0]
 
             # Параметры поиска
             search_params = {"metric_type": "COSINE", "params": {"nprobe": 10}}

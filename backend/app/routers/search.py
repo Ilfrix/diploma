@@ -77,6 +77,7 @@ async def get_similar(
             continue
 
         # Поиск похожих векторов
+        print("GET_SIMILAR " * 10)
         similar_vectors = vector_db.search_similar(
             embedding, k=limit + 1, threshold=threshold
         )
@@ -253,6 +254,7 @@ async def search_similar_by_crop(
         )
 
     # Поиск похожих
+    print("SEARCH_SIMILAR_BY_CROP " * 10)
     similar_vectors = vector_db.search_similar(embedding, k=limit, threshold=threshold)
 
     # Формирование ответа
@@ -338,6 +340,7 @@ async def search_similar_by_image(
     search_limit = (
         limit * 3 if russian_color else limit
     )  # Если фильтруем по цвету, берем больше
+    print("SEARCH_SIMILAR_BY_IMAGE " * 10)
     similar_vectors = vector_db.search_similar(
         query_embedding, k=search_limit, threshold=threshold
     )

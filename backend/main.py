@@ -42,6 +42,7 @@ async def lifespan(app: FastAPI):
         # detector_model_path=f"{config.MODEL_PATH}/yolov8n.pt",
         detector_model_path="triton:8000",
         encoder_model_path="tf_efficientnetv2_m.in21k",
+        # encoder_model_path="./root/.cache/huggingface/hub/models--timm--tf_efficientnetv2_m.in21k",
     )
     app.state.detector = detector
     app.state.encode = encoder

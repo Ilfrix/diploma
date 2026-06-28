@@ -98,6 +98,7 @@ class SearchWorker:
         embeddings: np.ndarray = np.array([])
         if crops:
             embeddings = encoder.encode(crops)
+        logger.info(f"_perform_search. encoder shape: {embeddings.shape}")
 
         if embeddings.size == 0:
             return {"similar_images": [], "message": "No features extracted"}
@@ -109,8 +110,13 @@ class SearchWorker:
 
         # Поиск в Milvus
         search_limit = limit * 3 if color_filter else limit
+        # Для дефолтной модели
+        # similar_vectors = self.vector_db.search_similar(
+        #     embeddings[0], k=search_limit, threshold=threshold
+        # )
+
         similar_vectors = self.vector_db.search_similar(
-            embeddings[0], k=search_limit, threshold=threshold
+            embeddings, k=search_limit, threshold=threshold
         )
 
         # Формируем результат

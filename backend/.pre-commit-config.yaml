@@ -33,7 +33,7 @@ repos:
         args: [--fix=lf]
       # Проверка наличия пустых строк в конце файла
       - id: check-added-large-files
-        args: [--maxkb=1000]
+        args: [--maxkb=18000]
       # Проверка синтаксиса Python
       - id: check-ast
       # Проверка импортов в правильном порядке (используйте ruff вместо isort)

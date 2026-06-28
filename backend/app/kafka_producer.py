@@ -16,7 +16,7 @@ class KafkaProducerManager:
     """Менеджер Kafka продюсера"""
 
     def __init__(self, bootstrap_servers: str):
-        print(f"KafkaProducer {bootstrap_servers}")
+        logger.info(f"KafkaProducer {bootstrap_servers}")
         self.bootstrap_servers = bootstrap_servers
         self.producer: AIOKafkaProducer = None
         self._running = False

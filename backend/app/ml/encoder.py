@@ -21,7 +21,7 @@ class ImageEncoder:
         try:
             self.model = timm.create_model(
                 self.model_path,
-                pretrained=True,
+                pretrained=False,
                 num_classes=0,  # Убираем голову, оставляем только features
             )
             self.model.eval()

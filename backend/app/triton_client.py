@@ -106,7 +106,7 @@ class TritonYOLODetector:
         self.target_names = ["bench", "chair", "couch", "bed", "dinning table"]
 
     def preprocess(
-        self, image: np.ndarray, target_size: tuple[int, int] = (640, 640)
+        self, image: np.ndarray, target_size: tuple[int, int] = (1024, 1024)
     ) -> np.ndarray:
         """
         Подготовка изображения для Triton
@@ -124,6 +124,86 @@ class TritonYOLODetector:
         batched = np.expand_dims(transposed, axis=0)
         return batched
 
+    # def postprocess(
+    #     self,
+    #     output: np.ndarray,
+    #     confidence_threshold: float = 0.25,
+    #     iou_threshold: float = 0.45,
+    # ) -> list[dict]:
+    #     """
+    #     Постобработка выхода YOLO
+
+    #     Args:
+    #         output: [1, 84, 8400] или [1, 8400, 84]
+    #         confidence_threshold: порог уверенности
+    #         iou_threshold: порог для NMS
+
+    #     Returns:
+    #         List[Dict]: детекции с ключами 'bbox', 'confidence', 'class_id', 'class_name'
+    #     """
+    #     # Проверяем размерность
+    #     print('SHAPE '*100)
+    #     print(output.shape)
+    #     if len(output.shape) == 3 and output.shape[1] == 5:
+    #         # Формат [batch, 8400, 84]
+    #         output = output.transpose(0, 2, 1)  # -> [batch, 84, 8400]
+
+    #     # Извлекаем данные
+    #     cx = output[0, 0, :]
+    #     cy = output[0, 1, :]
+    #     w = output[0, 2, :]
+    #     h = output[0, 3, :]
+
+    #     # Конвертируем в [x1, y1, x2, y2]
+    #     x1 = cx - w / 2
+    #     y1 = cy - h / 2
+    #     x2 = cx + w / 2
+    #     y2 = cy + h / 2
+
+    #     boxes = np.stack([x1, y1, x2, y2], axis=0)
+    #     # boxes = output[0, 0:4, :]  # [4, 8400] - x1, y1, x2, y2 (в координатах 0-640)
+    #     scores = output[0, 4:, :]  # [80, 8400] - confidence для каждого класса
+
+    #     # Находим максимальные confidence для каждого анкера
+    #     max_scores = np.max(scores, axis=0)  # [8400]
+    #     class_ids = np.argmax(scores, axis=0)  # [8400]
+
+    #     # Фильтрация по порогу
+    #     mask = max_scores > confidence_threshold
+    #     filtered_boxes = boxes[:, mask]
+    #     filtered_scores = max_scores[mask]
+    #     filtered_class_ids = class_ids[mask]
+
+    #     if len(filtered_boxes) == 0:
+    #         return []
+
+    #     # NMS (Non-Maximum Suppression)
+    #     keep_indices = self.nms(filtered_boxes, filtered_scores, iou_threshold)
+
+    #     # Формируем результат
+    #     detections = []
+    #     for idx in keep_indices:
+    #         x1, y1, x2, y2 = filtered_boxes[:, idx]
+    #         class_id = filtered_class_ids[idx]
+    #         class_name = (
+    #             self.class_names[class_id]
+    #             if class_id < len(self.class_names)
+    #             else f"class_{class_id}"
+    #         )
+    #         if class_name not in self.target_names:
+    #             continue
+
+    #         detections.append(
+    #             {
+    #                 "bbox": [float(x1), float(y1), float(x2), float(y2)],
+    #                 "confidence": float(filtered_scores[idx]),
+    #                 "class_id": int(class_id),
+    #                 "class_name": class_name,
+    #             }
+    #         )
+
+    #     return detections
+
     def postprocess(
         self,
         output: np.ndarray,
@@ -131,75 +211,95 @@ class TritonYOLODetector:
         iou_threshold: float = 0.45,
     ) -> list[dict]:
         """
-        Постобработка выхода YOLO
-
-        Args:
-            output: [1, 84, 8400] или [1, 8400, 84]
-            confidence_threshold: порог уверенности
-            iou_threshold: порог для NMS
-
-        Returns:
-            List[Dict]: детекции с ключами 'bbox', 'confidence', 'class_id', 'class_name'
+        Постобработка для формата [batch, 5, num_detections]
+        где 5 = [cx, cy, w, h, objectness]
         """
-        # Проверяем размерность
-        if output.shape[1] == 8400 and output.shape[2] == 84:
-            # Формат [batch, 8400, 84]
-            output = output.transpose(0, 2, 1)  # -> [batch, 84, 8400]
+        # print(f"Output shape in postprocess: {output.shape}")
+        # print(confidence_threshold)
+        # print(iou_threshold)
 
         # Извлекаем данные
-        cx = output[0, 0, :]
-        cy = output[0, 1, :]
-        w = output[0, 2, :]
-        h = output[0, 3, :]
+        cx = output[0, 0, :]  # center x
+        cy = output[0, 1, :]  # center y
+        w = output[0, 2, :]  # width
+        h = output[0, 3, :]  # height
+        objectness = output[0, 4, :]  # objectness score
 
-        # Конвертируем в [x1, y1, x2, y2]
-        x1 = cx - w / 2
-        y1 = cy - h / 2
-        x2 = cx + w / 2
-        y2 = cy + h / 2
+        # print(f"Objectness range: [{objectness.min():.3f}, {objectness.max():.3f}]")
+        # print(f"Coordinates range: cx=[{cx.min():.3f}, {cx.max():.3f}], cy=[{cy.min():.3f}, {cy.max():.3f}]")
+        # print(f"Size range: w=[{w.min():.3f}, {w.max():.3f}], h=[{h.min():.3f}, {h.max():.3f}]")
 
-        boxes = np.stack([x1, y1, x2, y2], axis=0)
-        # boxes = output[0, 0:4, :]  # [4, 8400] - x1, y1, x2, y2 (в координатах 0-640)
-        scores = output[0, 4:, :]  # [80, 8400] - confidence для каждого класса
+        # Нормализация координат и размеров
+        input_size = 1024
 
-        # Находим максимальные confidence для каждого анкера
-        max_scores = np.max(scores, axis=0)  # [8400]
-        class_ids = np.argmax(scores, axis=0)  # [8400]
+        # Если координаты уже в пикселях (как в вашем случае)
+        if cx.max() > 1.0 or cy.max() > 1.0:
+            # print("Coordinates in pixel space, normalizing...")
+            cx_norm = np.clip(cx / input_size, 0, 1)
+            cy_norm = np.clip(cy / input_size, 0, 1)
+            w_norm = np.clip(w / input_size, 0, 1)
+            h_norm = np.clip(h / input_size, 0, 1)
+        else:
+            # Координаты уже нормализованы
+            cx_norm = np.clip(cx, 0, 1)
+            cy_norm = np.clip(cy, 0, 1)
+            w_norm = np.clip(w, 0, 1)
+            h_norm = np.clip(h, 0, 1)
 
-        # Фильтрация по порогу
-        mask = max_scores > confidence_threshold
+        # Конвертируем [cx, cy, w, h] в [x1, y1, x2, y2] (нормализованные)
+        x1 = np.clip(cx_norm - w_norm / 2, 0, 1)
+        y1 = np.clip(cy_norm - h_norm / 2, 0, 1)
+        x2 = np.clip(cx_norm + w_norm / 2, 0, 1)
+        y2 = np.clip(cy_norm + h_norm / 2, 0, 1)
+
+        # Проверяем валидность боксов (ширина и высота > 0)
+        valid_boxes = (x2 > x1) & (y2 > y1)
+        # print(f"Valid boxes: {valid_boxes.sum()} out of {len(valid_boxes)}")
+
+        boxes = np.stack([x1, y1, x2, y2], axis=0)  # [4, num_detections]
+        scores = objectness
+
+        # Фильтрация по порогу и валидности
+        mask = (scores > confidence_threshold) & valid_boxes
         filtered_boxes = boxes[:, mask]
-        filtered_scores = max_scores[mask]
-        filtered_class_ids = class_ids[mask]
+        filtered_scores = scores[mask]
+
+        print(f"Detections before filtering: {len(scores)}")
+        print(
+            f"Detections after confidence threshold and validity check: {len(filtered_scores)}"
+        )
 
         if len(filtered_boxes) == 0:
             return []
 
-        # NMS (Non-Maximum Suppression)
+        # NMS
         keep_indices = self.nms(filtered_boxes, filtered_scores, iou_threshold)
+
+        print(f"Detections after NMS: {len(keep_indices)}")
 
         # Формируем результат
         detections = []
         for idx in keep_indices:
             x1, y1, x2, y2 = filtered_boxes[:, idx]
-            class_id = filtered_class_ids[idx]
-            class_name = (
-                self.class_names[class_id]
-                if class_id < len(self.class_names)
-                else f"class_{class_id}"
-            )
-            if class_name not in self.target_names:
-                continue
+
+            # Для модели с objectness, предполагаем что все детекции - это нужные объекты
+            class_name = "bed"
+
+            # Фильтрация по целевым классам (если есть)
+            # if hasattr(self, 'target_names') and class_name not in self.target_names:
+            #     continue
 
             detections.append(
                 {
                     "bbox": [float(x1), float(y1), float(x2), float(y2)],
                     "confidence": float(filtered_scores[idx]),
-                    "class_id": int(class_id),
+                    "class_id": 0,
                     "class_name": class_name,
                 }
             )
 
+        print(f"Final detections: {len(detections)}")
+        print(detections)
         return detections
 
     def nms(

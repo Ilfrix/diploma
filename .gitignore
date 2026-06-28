@@ -12,4 +12,6 @@ vector_db
 *.db
 bin/
 *.egg-info/
-runs
+runs/
+beds/
+models--timm*
