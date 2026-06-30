@@ -176,6 +176,8 @@ services:
     environment:
       - REACT_APP_API_URL=http://backend:8000  # URL бэкенда
       - REACT_APP_WS_URL=ws://backend:8000/ws  # WebSocket если есть
+    volumes:
+      - ./src:./src
     # depends_on:
     #   - backend  # Если бэкенд в Docker
     restart: unless-stopped

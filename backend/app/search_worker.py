@@ -92,7 +92,7 @@ class SearchWorker:
         # Получаем кропы
         crops = []
         if detections.get("boxes"):
-            crops = detector.get_crops(image, detections.get("boxes", []))
+            crops, _ = detector.get_crops(image, detections.get("boxes", []))
 
         # Извлекаем эмбеддинги
         embeddings: np.ndarray = np.array([])

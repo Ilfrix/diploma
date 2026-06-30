@@ -173,7 +173,7 @@ class MLProcessingWorker:
         print("detector", detector)
 
         if detector and detections.get("boxes"):
-            crops = detector.get_crops(image, detections.get("boxes", []))
+            crops, orig = detector.get_crops(image, detections.get("boxes", []))
         print("crops", crops)
 
         # Извлечение эмбеддингов для каждого кропа
@@ -189,7 +189,8 @@ class MLProcessingWorker:
         saved_crops = []
         milvus_ids = []
 
-        boxes = detections.get("boxes", [])
+        # boxes = detections.get("boxes", [])
+        boxes = [orig]
         classes = detections.get("classes", [])
         confidences = detections.get("confidences", [])
 
@@ -231,6 +232,8 @@ class MLProcessingWorker:
             russian_color_name = ColorExtractor.name_to_russian(color_name)
 
             # Создаем запись в таблице crops
+            print("bbox")
+            print(bbox)
             crop = Crop(
                 id=str(uuid.uuid4()),
                 image_id=sample.image_id,

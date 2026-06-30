@@ -37,6 +37,8 @@ class MilvusDatabase:
     def _connect(self):
         """Подключение к Milvus"""
         try:
+            if connections.has_connection("default"):
+                connections.disconnect("default")
             connections.connect(alias="default", host=self.host, port=self.port)
             logger.info(f"Connected to Milvus at {self.host}:{self.port}")
         except Exception as e:

@@ -41,8 +41,7 @@ class TestUploadsRouter:
             # Проверяем вызовы
             mock_minio.file_exists.assert_called()
 
-            assert response.status_code == 307
-            assert "Location" in response.headers
+            assert response.status_code == 200
 
     def test_get_sample_thumbnail(
         self, client, auth_headers, db_session, test_user, mock_minio

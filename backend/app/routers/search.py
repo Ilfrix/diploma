@@ -482,6 +482,7 @@ async def search_similar_async(
     image: UploadFile = File(...),
     color: str | None = None,
     limit: int = 10,
+    threshold: float = 0.7,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -505,7 +506,12 @@ async def search_similar_async(
     await kafka_producer.send_search_request(
         request_id=request_id,
         image_bytes=image_bytes,
-        metadata={"user_id": current_user.id, "color": color, "limit": limit},
+        metadata={
+            "user_id": current_user.id,
+            "color": color,
+            "limit": limit,
+            "threshold": threshold,
+        },
     )
 
     return {"request_id": request_id, "status": "pending"}

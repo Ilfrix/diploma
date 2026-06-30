@@ -42,7 +42,7 @@ def process_image_with_crops(
     # Получаем кропы
     crops = []
     if detector and detections.get("boxes"):
-        crops = detector.get_crops(image, detections.get("boxes", []))
+        crops, orig = detector.get_crops(image, detections.get("boxes", []))
 
     # Извлечение эмбеддингов для каждого кропа
     print("encoder")
@@ -58,7 +58,8 @@ def process_image_with_crops(
 
     # Подготовка данных о кропах
     crops_data = []
-    boxes = detections.get("boxes", [])
+    # boxes = detections.get("boxes", [])
+    boxes = orig
     classes = detections.get("classes", [])
     confidences = detections.get("confidences", [])
 

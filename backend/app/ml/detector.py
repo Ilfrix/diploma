@@ -184,7 +184,7 @@ class ImageDetector:
             crops.append(crop)
 
         print(f"Total crops: {len(crops)}")
-        return crops
+        return crops, (x1_orig, y1_orig, x2_orig, y2_orig)
 
     # def get_crops(self, image: Image.Image, bboxes: list[list[float]]):
     #     """
