@@ -22,7 +22,7 @@ class ImageEncoder:
             self.model = timm.create_model(
                 self.model_path,
                 pretrained=False,
-                num_classes=0,  # Убираем голову, оставляем только features
+                num_classes=0,  # Убираем голову
             )
             self.model.eval()
             data_config = timm.data.resolve_model_data_config(self.model)
@@ -37,7 +37,7 @@ class ImageEncoder:
     def encode(self, images: list) -> np.ndarray:
         """Извлечение эмбеддинга изображения"""
         if self.model is None:
-            logger.warning("ENCODER NONE " * 10)
+            logger.warning("ENCODER IS NONE")
             return np.random.rand(512)
 
         embeddings = []

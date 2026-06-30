@@ -5,7 +5,6 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-# ========== Auth schemas ==========
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     email: str = Field(..., pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -27,7 +26,6 @@ class TokenData(BaseModel):
     username: str
 
 
-# ========== Sample schemas ==========
 class SampleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
@@ -60,7 +58,6 @@ class SampleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ========== Image schemas ==========
 class ImageResponse(BaseModel):
     id: str
     image_path: str
@@ -72,7 +69,6 @@ class ImageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ========== Crop schemas ==========
 class VectorResponse(BaseModel):
     id: str
     crop_id: str
@@ -99,7 +95,6 @@ class CropResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ========== Search/Similarity schemas ==========
 class SimilarImage(BaseModel):
     sample_id: str
     name: str

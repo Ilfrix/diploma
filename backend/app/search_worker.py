@@ -36,37 +36,37 @@ class SearchWorker:
         metadata = message.get("metadata", {})
 
         if not request_id or not isinstance(request_id, str):
-            logger.error("Invalid or missing request_id in message")
+            logger.error("Неправильный или пропущенный request_id в сообщении")
             return
         if not image_data_b64 or not isinstance(image_data_b64, str):
-            logger.error("Invalid or missing image_data in message")
+            logger.error("Неправильный или пропущенный image_data в сообщении")
             return
 
         db = SessionLocal()
 
         try:
-            logger.info(f"Processing search request {request_id}")
+            logger.info(f"Обработка поискового запроса {request_id}")
 
-            # Обновляем статус на PROCESSING
+            # Обновление статуса до PROCESSING
             self._update_request_status(db, request_id, ProcessStatus.PROCESSING)
 
-            # Декодируем изображение
+            # Декодирование изображения
             image_bytes = base64.b64decode(image_data_b64)
 
             result = self._perform_search(
                 image_bytes=image_bytes, metadata=metadata, db=db
             )
 
-            # Сохраняем результат
+            # Сохранение результата
             self._update_request_result(db, request_id, result, ProcessStatus.PROCESSED)
 
             logger.info(
-                f"Search request {request_id} processed with {len(result.get('similar_images', []))} results"
+                f"Поисковый запрос {request_id} обработан с {len(result.get('similar_images', []))} результатами."
             )
 
         except Exception as e:
             logger.error(
-                f"Error processing search request {request_id}: {e}", exc_info=True
+                f"Ошибка обработки поискового запроса {request_id}: {e}", exc_info=True
             )
             self._update_request_result(
                 db, request_id, None, ProcessStatus.FAILED, error=str(e)
@@ -89,12 +89,10 @@ class SearchWorker:
         image = Image.open(io.BytesIO(image_bytes))
         detections = detector.detect(np.array(image))
 
-        # Получаем кропы
         crops = []
         if detections.get("boxes"):
             crops, _ = detector.get_crops(image, detections.get("boxes", []))
 
-        # Извлекаем эмбеддинги
         embeddings: np.ndarray = np.array([])
         if crops:
             embeddings = encoder.encode(crops)
@@ -110,16 +108,11 @@ class SearchWorker:
 
         # Поиск в Milvus
         search_limit = limit * 3 if color_filter else limit
-        # Для дефолтной модели
-        # similar_vectors = self.vector_db.search_similar(
-        #     embeddings[0], k=search_limit, threshold=threshold
-        # )
-
         similar_vectors = self.vector_db.search_similar(
             embeddings, k=search_limit, threshold=threshold
         )
 
-        # Формируем результат
+        # Формирование результата
         return self._format_results(similar_vectors, color_filter, limit, db)
 
     def _format_results(
@@ -128,7 +121,7 @@ class SearchWorker:
         """Форматирует результаты поиска"""
         similar_images = []
 
-        # Конвертируем английский цвет в русский для сравнения
+        # Конвертация английского цвета в русский для сравнения
         russian_color = None
         if color_filter:
             color_lower = color_filter.lower()

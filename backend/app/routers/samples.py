@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import os
 
 from fastapi import (
@@ -23,6 +24,7 @@ from app.schemas import SampleResponse, SampleUpdate
 from app.utils import hash_image
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/samples", tags=["samples"])
 
 
@@ -91,7 +93,7 @@ async def create_new_sample(
         if existing_image:
             image_model = existing_image
         else:
-            # Создаем запись в таблице images
+            # Создание записи в таблице images
             image_model = ImageModel(
                 image_path=object_path,
                 image_hash=image_hash,
@@ -145,7 +147,6 @@ async def read_sample(
         db.query(Sample)
         .filter(
             Sample.id == sample_id,
-            # Sample.user_id == current_user.id
         )
         .first()
     )
@@ -190,7 +191,7 @@ async def get_sample_image(
             detail="Image not found for this sample",
         )
 
-    # Получаем временную ссылку из MinIO
+    # Получение временной ссылки из MinIO
     image_url = minio_client.get_file_url(sample.image.image_path, expires)
 
     return {"sample_id": sample_id, "image_url": image_url, "expires_in": expires}
@@ -218,10 +219,10 @@ async def get_sample_crops(
     if not sample.image:
         return {"sample_id": sample_id, "crops": [], "count": 0}
 
-    # Получаем все кропы для изображения
+    # Получение всех кропов для изображения
     crops = sample.image.crops if sample.image.crops else []
 
-    # Формируем ответ с временными ссылками
+    # Формирование ответа с временными ссылками
     crops_data = []
     for crop in crops:
         crop_url = minio_client.get_file_url(crop.crop_path, expires=3600)
@@ -267,7 +268,7 @@ async def get_sample_vectors(
     if not sample.image:
         return {"sample_id": sample_id, "vectors": [], "count": 0}
 
-    # Собираем информацию о векторах для всех кропов
+    # Сбор информации о векторах для всех кропов
     vectors_data = []
     for crop in sample.image.crops:
         if crop.vector:
@@ -340,7 +341,7 @@ async def delete_sample(
             status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found"
         )
 
-    # Сохраняем image_id перед удалением сэмпла
+    # Сохранение image_id перед удалением сэмпла
     image_id = sample.image_id
 
     # Удаляем сэмпл
@@ -350,23 +351,22 @@ async def delete_sample(
     if vector_db:
         vector_db.delete_by_sample_id(sample.id)
     else:
-        print("None " * 100)
-    # Проверяем, есть ли другие сэмплы, использующие это изображение
+        logger.warning("vector_db не найден")
+
+    # Проверка есть ли другие сэмплы, использующие это изображение
     if image_id:
         other_samples = db.query(Sample).filter(Sample.image_id == image_id).first()
 
-        # Если изображение больше не используется, удаляем его и связанные данные
+        # Если изображение больше не используется, удаление его и связанных данных
         if not other_samples:
             image = db.query(ImageModel).filter(ImageModel.id == image_id).first()
             if image:
-                # Удаляем файлы кропов из MinIO
                 for crop in image.crops:
                     minio_client.delete_file(crop.crop_path)
 
-                # Удаляем оригинальный файл из MinIO
                 minio_client.delete_file(image.image_path)
 
-                # Удаляем изображение из БД (каскадно удалятся кропы и векторы)
+                # Удаление изображения из БД (каскадно удалятся кропы и векторы)
                 db.delete(image)
                 db.commit()
 
@@ -382,7 +382,6 @@ async def list_samples(
     db: Session = Depends(get_db),
 ):
     """Получить список всех эталонов пользователя с фильтрацией по статусу"""
-    print("LIST " * 100)
 
     query = db.query(Sample).filter(Sample.user_id == current_user.id)
 
@@ -409,7 +408,7 @@ async def get_samples_stats(
     total_crops = 0
     total_vectors = 0
 
-    # Подсчитываем общее количество кропов и векторов
+    # Подсчет общего количества кропов и векторов
     samples = db.query(Sample).filter(Sample.user_id == current_user.id).all()
     for sample in samples:
         if sample.image and sample.image.crops:

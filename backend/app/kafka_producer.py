@@ -29,14 +29,14 @@ class KafkaProducerManager:
         )
         await self.producer.start()
         self._running = True
-        logger.info("Kafka producer started")
+        logger.info("KafkaProducer запущен")
 
     async def stop(self):
         """Остановка продюсера"""
         if self.producer:
             await self.producer.stop()
             self._running = False
-            logger.info("Kafka producer stopped")
+            logger.info("KafkaProducer остановлен")
 
     async def send_message(self, topic: str, key: str, value: dict[str, Any]):
         """Отправка сообщения в Kafka"""
@@ -45,9 +45,9 @@ class KafkaProducerManager:
 
         try:
             await self.producer.send_and_wait(topic, key=key.encode(), value=value)
-            logger.debug(f"Message sent to {topic}: key={key}")
+            logger.debug(f"Сообщение отправлено в {topic}: key={key}")
         except Exception as e:
-            logger.error(f"Failed to send message to Kafka: {e}")
+            logger.error(f"Ошибка отправки сообщения в Kafka: {e}")
             raise
 
     async def send_image_for_processing(
@@ -82,7 +82,7 @@ class KafkaProducerManager:
         await self.send_message(
             topic=config.KAFKA_SEARCH_TOPIC, key=request_id, value=message
         )
-        logger.info(f"Search request {request_id} sent for processing")
+        logger.info(f"Запрос на поиск {request_id} отправлен для обработки")
 
 
 kafka_producer = KafkaProducerManager(config.KAFKA_BOOTSTRAP_SERVERS)

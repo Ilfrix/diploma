@@ -38,7 +38,7 @@ class MLProcessingWorker:
         sample_id = None
 
         try:
-            # Извлекаем данные из сообщения
+            # Извлечение данных из сообщения
             sample_id = message.get("image_id") or message.get("sample_id")
             image_data_b64 = message.get("image_data")
             metadata = message.get("metadata", {})
@@ -53,7 +53,7 @@ class MLProcessingWorker:
             if image_data_b64:
                 image_bytes = base64.b64decode(image_data_b64)
             else:
-                # Если нет данных в сообщении, пробуем загрузить из MinIO
+                # Если нет данных в сообщении, загрузка из MinIO
                 image_path = metadata.get("image_path")
                 if image_path:
                     image_bytes = minio_client.download_file(image_path)
@@ -63,7 +63,7 @@ class MLProcessingWorker:
             db = SessionLocal()
 
             try:
-                # Получаем сэмпл из БД
+                # Получение сэмпла из БД
                 sample = db.query(Sample).filter(Sample.id == sample_id).first()
                 if not sample:
                     logger.error(f"Sample {sample_id} not found in database")
@@ -72,10 +72,10 @@ class MLProcessingWorker:
                     )
                     return
 
-                # Сохраняем оригинальное изображение в БД (если еще не сохранено)
+                # Сохранение оригинального изображение в БД (если еще не сохранено)
                 image_path = metadata.get("image_path")
                 if not sample.image_id and image_path:
-                    # Создаем запись в таблице images
+                    # Создание записи в таблице images
                     image_model = await self._save_image_to_database(
                         db=db,
                         image_bytes=image_bytes,
@@ -84,11 +84,11 @@ class MLProcessingWorker:
                         image_hash=metadata.get("image_hash"),
                     )
 
-                    # Связываем сэмпл с изображением
+                    # Связь сэмпла с изображением
                     sample.image_id = image_model.id
                     db.commit()
 
-                # Обновляем статус на PROCESSING
+                # Обновеление статуса на PROCESSING
                 sample.status = ProcessStatus.PROCESSING
                 db.commit()
 
@@ -96,24 +96,22 @@ class MLProcessingWorker:
                 result = await self._process_and_save_crops(
                     db=db, sample=sample, image_bytes=image_bytes, metadata=metadata
                 )
-                print("result")
-                print(result)
-                print(sample)
+                logger.info(f"Результат обработки с сохранением {result}")
 
-                # Обновляем статус сэмпла на PROCESSED
+                # Обновление статуса сэмпла на PROCESSED
                 sample.status = ProcessStatus.PROCESSED
                 sample.updated_at = datetime.now()
                 db.commit()
                 logger.info(
-                    f"Successfully processed sample {sample_id}: {len(result['crops'])} crops saved"
+                    f"Успешно обработан {sample_id}: {len(result['crops'])} кроп сохранен"
                 )
 
             finally:
                 db.close()
 
         except Exception as e:
-            logger.error(f"Error processing sample {sample_id}: {e}", exc_info=True)
-            # Обновляем статус на FAILED
+            logger.error(f"Ошибка обработка сэмпла {sample_id}: {e}", exc_info=True)
+            # Обновление статус на FAILED
             db = SessionLocal()
             try:
                 sample_id = str(sample_id) if sample_id else ""
@@ -133,11 +131,11 @@ class MLProcessingWorker:
     ) -> ImageModel:
         """Сохраняет изображение в БД"""
 
-        # Вычисляем хэш если не предоставлен
+        # Вычисление хэша если не предоставлен
         if not image_hash:
             image_hash = hash_image(image_bytes)
 
-        # Проверяем, существует ли уже такое изображение
+        # Проверка существует ли уже такое изображение
         existing_image = (
             db.query(ImageModel).filter(ImageModel.image_hash == image_hash).first()
         )
@@ -169,19 +167,18 @@ class MLProcessingWorker:
         detections = detector.detect(np.array(image)) if detector else {}
 
         crops = []
-        print("boxes", detections.get("boxes"))
-        print("detector", detector)
+        logger.info(f"Ббоксы {detections.get('boxes')}")
 
         if detector and detections.get("boxes"):
             crops, orig = detector.get_crops(image, detections.get("boxes", []))
-        print("crops", crops)
+        logger.info(f"Кропы {crops}")
 
         # Извлечение эмбеддингов для каждого кропа
         embeddings: np.ndarray = np.array([])
 
         if encoder and crops:
             embeddings = encoder.encode(crops)
-        print("_process_and_save_crops. encoder shape:", embeddings.shape)
+        logger.info(f"Размерность эмбеддинга {embeddings.shape}")
 
         if embeddings.size == 0:
             embeddings = np.array([np.random.rand(1280) for _ in range(len(crops))])
@@ -189,7 +186,6 @@ class MLProcessingWorker:
         saved_crops = []
         milvus_ids = []
 
-        # boxes = detections.get("boxes", [])
         boxes = [orig]
         classes = detections.get("classes", [])
         confidences = detections.get("confidences", [])
@@ -197,7 +193,7 @@ class MLProcessingWorker:
         for idx, (crop_image, bbox, class_name, confidence, embedding) in enumerate(
             zip(crops, boxes, classes, confidences, embeddings, strict=True)
         ):
-            # Сохраняем кроп в MinIO
+            # Сохранение кропа в MinIO
             crop_path = f"crops/{sample.image_id}/{idx}.jpg"
             crop_bytes_io = io.BytesIO()
             crop_image.save(crop_bytes_io, format="JPEG", quality=95)
@@ -223,17 +219,13 @@ class MLProcessingWorker:
                     "bbox": json.dumps(bbox),
                 },
             )
-            print("-" * 100)
             milvus_ids.append(milvus_id)
-            # color_val = ColorExtractor.get_dominant_color(crop_bytes)
-            # color_val = ColorExtractor.get_dominant_color_robust(crop_bytes)
             color_val = ColorExtractor.debug_color_extraction(crop_bytes)
             color_name = ColorExtractor.color_to_name(color_val)
             russian_color_name = ColorExtractor.name_to_russian(color_name)
 
-            # Создаем запись в таблице crops
-            print("bbox")
-            print(bbox)
+            # Создание записи в таблице crops
+            logger.info(f"Создание записи в Crop. {bbox}")
             crop = Crop(
                 id=str(uuid.uuid4()),
                 image_id=sample.image_id,
@@ -250,7 +242,7 @@ class MLProcessingWorker:
             db.add(crop)
             db.flush()
 
-            # Создаем запись в таблице vectors
+            # Создание записи в таблице vectors
             vector = Vector(id=str(uuid.uuid4()), crop_id=crop.id, milvus_id=milvus_id)
             db.add(vector)
 
@@ -277,16 +269,16 @@ class MLProcessingWorker:
                     sample.error_message = error
                 sample.updated_at = datetime.now()
                 db.commit()
-                logger.info(f"Updated sample {sample_id} status to {status.value}")
+                logger.info(f"Обновление статуса сэмпла {sample_id} до {status.value}")
         except Exception as e:
-            logger.error(f"Failed to update sample status: {e}")
+            logger.error(f"Ошибка обновления статуса сэмпла: {e}")
 
     async def start(self):
         """Запуск worker"""
         self._running = True
-        logger.info("ML Processing Worker started")
+        logger.info("MLProcessingWorker начал работу")
 
     async def stop(self):
         """Остановка worker"""
         self._running = False
-        logger.info("ML Processing Worker stopped")
+        logger.info("MLProcessingWorker остановлен")

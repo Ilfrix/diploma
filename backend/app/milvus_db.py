@@ -40,9 +40,9 @@ class MilvusDatabase:
             if connections.has_connection("default"):
                 connections.disconnect("default")
             connections.connect(alias="default", host=self.host, port=self.port)
-            logger.info(f"Connected to Milvus at {self.host}:{self.port}")
+            logger.info(f"Подключение к Milvus по {self.host}:{self.port}")
         except Exception as e:
-            logger.error(f"Failed to connect to Milvus: {e}")
+            logger.error(f"Ошибка подключения к Milvus: {e}")
             raise
 
     def _init_collection_with_schema(self):
@@ -50,7 +50,7 @@ class MilvusDatabase:
         try:
             if utility.has_collection(self.collection_name):
                 self.collection = Collection(self.collection_name)
-                logger.info(f"Loaded existing collection: {self.collection_name}")
+                logger.info(f"Загружена существующая коллекция: {self.collection_name}")
             else:
                 fields = [
                     # Primary key
@@ -92,32 +92,30 @@ class MilvusDatabase:
                     ),
                 ]
 
-                # Создаем схему
+                # Создание схемы
                 schema = CollectionSchema(
                     fields, description="Image crop vectors for duplicate detection"
                 )
-                # Создаем коллекцию
+                # Создание коллекции
                 self.collection = Collection(self.collection_name, schema)
 
-                # Создаем индекс для векторов
+                # Создание индекса для векторов
                 index_params = {
                     "metric_type": "COSINE",
                     "index_type": "IVF_FLAT",
                     "params": {"nlist": 128},
                 }
                 self.collection.create_index("vector", index_params)
-                logger.info(
-                    f"Created new collection with explicit schema: {self.collection_name}"
-                )
+                logger.info(f"Создана новая коллекция: {self.collection_name}")
 
-            # Загружаем коллекцию в память
+            # Загрузка коллекции в память
             self.collection.load()
             logger.info(
-                f"Collection {self.collection_name} loaded, contains {self.collection.num_entities} entities"
+                f"Коллекция {self.collection_name} загружена, содержит {self.collection.num_entities} сущностей"
             )
 
         except Exception as e:
-            logger.error(f"Error initializing collection: {e}")
+            logger.error(f"Ошибка инициализации коллекции: {e}")
             raise
 
     def _prepare_vector(self, vector: np.ndarray) -> list[float]:
@@ -149,14 +147,14 @@ class MilvusDatabase:
                 # Проверка размерности
                 if len(vector_list) != self.dim:
                     logger.warning(
-                        f"Vector dimension mismatch: expected {self.dim}, got {len(vector_list)}"
+                        f"Размерность векторов различается: ожидалось {self.dim}, получено {len(vector_list)}"
                     )
                     if len(vector_list) > self.dim:
                         vector_list = vector_list[: self.dim]
                     else:
                         vector_list.extend([0.0] * (self.dim - len(vector_list)))
 
-                # Формируем запись по схеме
+                # Формирование записи по схеме
                 record = {
                     "id": v_data["vector_id"],
                     "vector": vector_list,
@@ -176,10 +174,10 @@ class MilvusDatabase:
             # Вставка в коллекцию
             self.collection.insert(insert_data)
             self.collection.flush()
-            logger.info(f"Batch added {len(insert_data)} vectors to Milvus")
+            logger.info(f"Добавлено {len(insert_data)} векторов в Milvus")
 
         except Exception as e:
-            logger.error(f"Error in batch add: {e}", exc_info=True)
+            logger.error(f"Ошибка доабвления векторов: {e}", exc_info=True)
             raise
 
     def add_vector(self, vector_id: str, vector: np.ndarray, metadata: dict[str, Any]):
@@ -201,7 +199,7 @@ class MilvusDatabase:
                 return np.array(results[0]["vector"], dtype=np.float32)
             return None
         except Exception as e:
-            logger.error(f"Error getting vector {vector_id}: {e}")
+            logger.error(f"Ошибка получения вектора {vector_id}: {e}")
             return None
 
     def delete_vector(self, vector_id: str):
@@ -211,9 +209,9 @@ class MilvusDatabase:
                 raise RuntimeError("Milvus collection not initialized")
             self.collection.delete(f'id == "{vector_id}"')
             self.collection.flush()
-            logger.debug(f"Deleted vector {vector_id}")
+            logger.debug(f"Удален вектор {vector_id}")
         except Exception as e:
-            logger.error(f"Error deleting vector {vector_id}: {e}")
+            logger.error(f"Ошибка удаления вектора {vector_id}: {e}")
 
     def delete_by_sample_id(self, sample_id: str):
         """Удаление всех векторов, связанных с изображением"""
@@ -223,9 +221,9 @@ class MilvusDatabase:
             expr = f'sample_id == "{sample_id}"'
             self.collection.delete(expr)
             self.collection.flush()
-            logger.info(f"Deleted vectors for sample {sample_id}")
+            logger.info(f"Удалены векторы для семпла {sample_id}")
         except Exception as e:
-            logger.error(f"Error deleting by sample_id: {e}")
+            logger.error(f"Ошибка удаления по sample_id: {e}")
 
     def get_metadata(self, vector_id: str) -> dict[str, Any]:
         """Получение метаданных"""
@@ -251,7 +249,7 @@ class MilvusDatabase:
                 return {k: v for k, v in result.items() if k != "id"}
             return {}
         except Exception as e:
-            logger.error(f"Error getting metadata for {vector_id}: {e}")
+            logger.error(f"Ошибка получения метаданных для {vector_id}: {e}")
             return {}
 
     def search_similar(
@@ -308,7 +306,7 @@ class MilvusDatabase:
             return formatted_results
 
         except Exception as e:
-            logger.error(f"Error searching similar vectors: {e}", exc_info=True)
+            logger.error(f"Ошибка поиска похожих векторов: {e}", exc_info=True)
             return []
 
     def health_check(self) -> str:
@@ -334,6 +332,6 @@ class MilvusDatabase:
         """Закрытие соединения"""
         try:
             connections.disconnect("default")
-            logger.info("Disconnected from Milvus")
+            logger.info("Соединение с Milvus прервано.")
         except Exception as e:
-            logger.error(f"Error closing connection: {e}")
+            logger.error(f"Ошибка отключения от Milvus: {e}")

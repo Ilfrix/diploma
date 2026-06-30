@@ -9,7 +9,6 @@ from app.ml.detector import ImageDetector
 from app.ml.encoder import ImageEncoder
 
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -45,14 +44,11 @@ def process_image_with_crops(
         crops, orig = detector.get_crops(image, detections.get("boxes", []))
 
     # Извлечение эмбеддингов для каждого кропа
-    print("encoder")
-    print(encoder)
     embeddings: np.ndarray = np.array([])
     if encoder and crops:
         embeddings = encoder.encode(crops)
 
-    print("process_image_with_crops. embeddings after encoder")
-    print(embeddings.shape)
+    logger.info(f"Размерность эмбеддинга: {embeddings.shape}")
     if not embeddings:
         embeddings = np.array([np.random.rand(1280) for _ in range(len(crops))])
 

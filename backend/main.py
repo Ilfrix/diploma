@@ -21,7 +21,6 @@ from app.search_worker import SearchWorker
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Глобальные объекты
 vector_db = None
 ml_worker = None
 search_worker = None
@@ -31,23 +30,15 @@ minio = minio_client
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения"""
-    # Startup
-    logger.info("Starting up...")
+    logger.info("Запуск системы...")
 
-    # Создание директорий
-    # config.ensure_directories()
-
-    # Инициализация ML моделей
     detector, encoder = init_ml_models(
-        # detector_model_path=f"{config.MODEL_PATH}/yolov8n.pt",
         detector_model_path="triton:8000",
         encoder_model_path="tf_efficientnetv2_m.in21k",
-        # encoder_model_path="./root/.cache/huggingface/hub/models--timm--tf_efficientnetv2_m.in21k",
     )
     app.state.detector = detector
     app.state.encode = encoder
 
-    # Инициализация векторной БД
     vector_db = MilvusDatabase(
         host=config.MILVUS_HOST,
         port=config.MILVUS_PORT,
@@ -56,34 +47,25 @@ async def lifespan(app: FastAPI):
     )
     app.state.vector_db = vector_db
 
-    # Инициализация Kafka продюсера
     await kafka_producer.start()
 
-    # Инициализация ML worker
     ml_worker = MLProcessingWorker(vector_db, detector, encoder)
     await ml_worker.start()
 
-    # Запуск Kafka консюмера с обработчиком
     await kafka_consumer.start(ml_worker.process_image_message)
-
     search_worker = SearchWorker(vector_db, detector, encoder)
-
-    # Запуск Kafka consumer для поисковых запросов
     await kafka_search_consumer.start(search_worker.process_search_message)
 
-    # Создание таблиц БД
     Base.metadata.create_all(bind=engine)
 
     yield
 
-    # Shutdown
-    logger.info("Shutting down...")
+    logger.info("Выключение системы...")
     await kafka_consumer.stop()
     await ml_worker.stop()
     await kafka_producer.stop()
 
 
-# Создание FastAPI приложения
 app = FastAPI(
     title="FlexSearch",
     description="Система для поиска похожих изображений",
@@ -91,7 +73,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS настройки
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -100,7 +81,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключение роутеров
 app.include_router(auth_router)
 app.include_router(samples_router)
 app.include_router(search_router)

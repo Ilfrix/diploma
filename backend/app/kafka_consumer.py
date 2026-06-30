@@ -38,7 +38,7 @@ class KafkaConsumerManager:
 
         await self.consumer.start()
         self._running = True
-        logger.info(f"Kafka consumer started for topics: {self.topics}")
+        logger.info(f"Kafka consumer запущен для топика: {self.topics}")
 
         # Запуск цикла обработки сообщений
         self._task = asyncio.create_task(self._consume_loop())
@@ -48,7 +48,7 @@ class KafkaConsumerManager:
         self._running = False
         if self.consumer:
             await self.consumer.stop()
-            logger.info("Kafka consumer stopped")
+            logger.info("Kafka consumer остановлен")
 
     async def _consume_loop(self):
         """Основной цикл потребления сообщений"""
@@ -61,9 +61,9 @@ class KafkaConsumerManager:
                     if self._message_handler:
                         await self._message_handler(msg.key.decode(), msg.value)
                 except Exception as e:
-                    logger.error(f"Error processing message: {e}")
+                    logger.error(f"Ошибка обработки сообщения: {e}")
         except Exception as e:
-            logger.error(f"Consumer loop error: {e}")
+            logger.error(f"Ошибка цикла консьюмера: {e}")
             if self._running:
                 # Перезапуск консюмера при ошибке
                 await asyncio.sleep(5)

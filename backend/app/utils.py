@@ -36,7 +36,6 @@ class ColorExtractor:
     def color_to_name(color: tuple[int, int, int]):
         min_distance = 1_000
         for col, val in color_map.items():
-            # d = ColorExtractor.color_distance(color, val)
             d = ColorExtractor.color_distance_weighted(color, val)
             if d < min_distance:
                 min_distance = d

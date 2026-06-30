@@ -1,15 +1,15 @@
-"""
-Модуль для работы с MinIO S3
-"""
-
 from datetime import timedelta
 import io
+import logging
 
 from fastapi import HTTPException, UploadFile, status
 from minio import Minio
 from minio.error import S3Error
 
 from app.config import config
+
+
+logger = logging.getLogger(__name__)
 
 
 class MinIOClient:
@@ -29,12 +29,12 @@ class MinIOClient:
                 secure=False,
             )
 
-            # Создаем bucket если не существует
+            # Создание bucket если не существует
             if not self.client.bucket_exists(config.MINIO_BUCKET_NAME):
                 self.client.make_bucket(config.MINIO_BUCKET_NAME)
 
         except Exception as e:
-            print(f"Failed to initialize MinIO client: {e}")
+            logger.error(f"Failed to initialize MinIO client: {e}")
             self.client = None
 
     def upload_file(
@@ -287,7 +287,7 @@ class MinIOClient:
             return {"status": "not_initialized"}
 
         try:
-            # Пытаемся получить список bucket'ов для проверки соединения
+            # Список бакетов для проверки соединения
             self.client.list_buckets()
             return {
                 "status": "healthy",

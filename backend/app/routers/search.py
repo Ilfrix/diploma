@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
@@ -14,6 +15,7 @@ from app.schemas import CropResponse, SimilarImage, SimilarResponse
 from app.utils import COLOR_NAMES
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["search"])
 
 
@@ -23,19 +25,17 @@ async def get_similar(
     request: Request,
     limit: int = 10,
     threshold: float = 0.7,
-    use_all_crops: bool = False,  # Если True - ищем по всем кропам, если False - по первому
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Найти ближайшие изображения к эталону"""
-    print("sample_id", sample_id)
+    logging.info(f"Поиск для sample_id: {sample_id}")
     vector_db = request.app.state.vector_db
     # Получение эталона
     sample = (
         db.query(Sample)
         .filter(
             Sample.id == sample_id,
-            # Sample.user_id == current_user.id
         )
         .first()
     )
@@ -51,7 +51,7 @@ async def get_similar(
             detail="Image not found for this sample",
         )
 
-    # Получаем кропы и их векторы
+    # Получение кропов и их векторов
     crops_with_vectors = (
         db.query(Crop, VectorModel)
         .join(VectorModel, Crop.id == VectorModel.crop_id)
@@ -67,22 +67,17 @@ async def get_similar(
             detail="No crop vectors found for this sample",
         )
 
-    # Собираем результаты от всех кропов
     all_similar: dict[str, dict] = {}
 
     for _crop, vector in crops_with_vectors:
-        # Получаем эмбеддинг из векторной БД по milvus_id
         embedding = vector_db.get_vector(vector.milvus_id)
         if embedding is None:
             continue
 
-        # Поиск похожих векторов
-        print("GET_SIMILAR " * 10)
         similar_vectors = vector_db.search_similar(
             embedding, k=limit + 1, threshold=threshold
         )
 
-        # Агрегируем результаты
         for vec_id, score, metadata in similar_vectors:
             if vec_id == vector.milvus_id:
                 continue
@@ -91,14 +86,14 @@ async def get_similar(
             if not similar_sample_id or similar_sample_id == sample_id:
                 continue
 
-            # Сохраняем максимальную схожесть для каждого сэмпла
+            # Сохранением максимальной схожести для каждого сэмпла
             if (
                 similar_sample_id not in all_similar
                 or score > all_similar[similar_sample_id]["score"]
             ):
                 all_similar[similar_sample_id] = {"score": score, "metadata": metadata}
 
-    # Формируем ответ
+    # Формирование ответа
     similar_images = []
     for sample_id, data in sorted(
         all_similar.items(), key=lambda x: x[1]["score"], reverse=True
@@ -107,7 +102,6 @@ async def get_similar(
             db.query(Sample)
             .filter(
                 Sample.id == sample_id,
-                # Sample.user_id == current_user.id
             )
             .first()
         )
@@ -120,7 +114,7 @@ async def get_similar(
                     description=similar_sample.description,
                     similarity_score=float(data["score"]),
                     image_id=similar_sample.image_id,
-                    image_url=None,  # Можно добавить генерацию временной ссылки
+                    image_url=None,
                 )
             )
 
@@ -219,14 +213,14 @@ async def search_similar_by_crop(
 ):
     """Поиск похожих изображений по ID кропа"""
     vector_db = request.app.state.vector_db
-    # Получаем кроп
+    # Получение кропа
     crop = db.query(Crop).filter(Crop.id == crop_id).first()
     if not crop:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Crop not found"
         )
 
-    # Проверяем права доступа (через сэмпл)
+    # Проверка права доступа
     sample = (
         db.query(Sample)
         .filter(Sample.image_id == crop.image_id, Sample.user_id == current_user.id)
@@ -245,7 +239,6 @@ async def search_similar_by_crop(
             status_code=status.HTTP_404_NOT_FOUND, detail="Vector not found"
         )
 
-    # Получаем эмбеддинг из Milvus
     embedding = vector_db.get_vector(vector.milvus_id)
     if embedding is None:
         raise HTTPException(
@@ -253,8 +246,6 @@ async def search_similar_by_crop(
             detail="Embedding not found in vector database",
         )
 
-    # Поиск похожих
-    print("SEARCH_SIMILAR_BY_CROP " * 10)
     similar_vectors = vector_db.search_similar(embedding, k=limit, threshold=threshold)
 
     # Формирование ответа
@@ -306,7 +297,7 @@ async def search_similar_by_image(
 
     russian_color = None
     if color:
-        # Ищем соответствие (игнорируем регистр)
+        # Поиск соответствия
         color_lower = color.lower()
         for eng_name, rus_name in COLOR_NAMES.items():
             if eng_name.lower() == color_lower:
@@ -316,39 +307,32 @@ async def search_similar_by_image(
         if not russian_color:
             russian_color = color
 
-    # Обработка изображения
     image_bytes = await image.read()
 
-    # Получаем эмбеддинги для кропов, embed, det, crop_data
     embeddings, _det, _crop_data = process_image_with_crops(
         image_bytes=image_bytes,
-        # db=None,  # Не сохраняем в БД
-        # image_id=None,
         detector=request.app.state.detector,
         encoder=request.app.state.encoder,
     )
     if not embeddings:
         return []
 
-    # Ищем в векторной БД (используем первый эмбеддинг)
+    # Поиск в векторной БД (для первого эмбеддинга)
     query_embedding = embeddings[0] if embeddings else None
 
     if query_embedding is None:
         return []
 
-    # Поиск в векторной БД (запрашиваем больше результатов для фильтрации)
-    search_limit = (
-        limit * 3 if russian_color else limit
-    )  # Если фильтруем по цвету, берем больше
-    print("SEARCH_SIMILAR_BY_IMAGE " * 10)
+    # Поиск в векторной БД (больше результатов для фильтрации)
+    search_limit = limit * 3 if russian_color else limit
     similar_vectors = vector_db.search_similar(
         query_embedding, k=search_limit, threshold=threshold
     )
 
-    # Получаем ID найденных сэмплов
+    # Получение ID найденных сэмплов
     found_sample_ids = []
     vec_metadata_map = {}
-    for _vec_id, score, metadata in similar_vectors:
+    for _, score, metadata in similar_vectors:
         sample_id = metadata.get("sample_id")
         if sample_id and sample_id not in found_sample_ids:
             found_sample_ids.append(sample_id)
@@ -357,7 +341,7 @@ async def search_similar_by_image(
     if not found_sample_ids:
         return []
 
-    # Получаем информацию о сэмплах и их цветах
+    # Получение информации о сэмплах и их цветах
     query = (
         db.query(
             Sample.id,
@@ -374,7 +358,7 @@ async def search_similar_by_image(
         .all()
     )
 
-    # Группируем цвета по сэмплам
+    # Группировака цвета по сэмплам
     sample_colors: dict[int, set] = {}
     sample_data = {}
     for row in query:
@@ -390,20 +374,19 @@ async def search_similar_by_image(
         if row.color_name:
             sample_colors[sample_id].add(row.color_name)
 
-    # Формируем ответ с фильтрацией по цвету
+    # Формирование ответа с фильтрацией по цвету
     similar_images = []
     for sample_id in found_sample_ids:
-        # Проверяем, есть ли у сэмпла данные
         if sample_id not in sample_data:
             continue
 
-        # Фильтрация по цвету (сравниваем с русским названием)
+        # Фильтрация по цвету (по русскому названию)
         if russian_color:
             sample_color_set = sample_colors.get(sample_id, set())
             if russian_color not in sample_color_set:
                 continue  # Сэмпл не имеет нужного цвета
 
-        # Добавляем в результаты
+        # Добавление в результаты
         score = vec_metadata_map[sample_id]["score"]
         similar_images.append(
             SimilarImage(
@@ -416,7 +399,7 @@ async def search_similar_by_image(
             )
         )
 
-        # Ограничиваем количество результатов
+        # Ограничение количества результатов
         if len(similar_images) >= limit:
             break
 
@@ -437,7 +420,7 @@ async def get_crop_info(
             status_code=status.HTTP_404_NOT_FOUND, detail="Crop not found"
         )
 
-    # Проверяем права доступа
+    # Проверка прав доступа
     sample = (
         db.query(Sample)
         .filter(Sample.image_id == crop.image_id, Sample.user_id == current_user.id)
@@ -486,11 +469,9 @@ async def search_similar_async(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    print("search_async")
-    print(f"color is {color}")
+    logger.info(f"Целевой цвет: {color}")
     request_id = str(uuid.uuid4())
 
-    # 1. Сразу сохраняем в БД
     search_request = SearchRequest(
         id=request_id,
         user_id=current_user.id,
@@ -501,7 +482,6 @@ async def search_similar_async(
     db.add(search_request)
     db.commit()
 
-    # 2. Отправляем в Kafka
     image_bytes = await image.read()
     await kafka_producer.send_search_request(
         request_id=request_id,
@@ -534,7 +514,6 @@ async def get_search_result(
     if search_request.user_id != current_user.id:
         raise HTTPException(403, "Access denied")
 
-    # Проверяем, не истек ли запрос
     if search_request.expires_at < datetime.now():
         return {"status": "expired", "request_id": request_id}
 

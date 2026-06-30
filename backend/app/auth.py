@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import logging
 
 import bcrypt
 from fastapi import Depends, HTTPException, status
@@ -10,6 +11,9 @@ from app.config import config
 from app.database import get_db
 from app.models import User
 from app.schemas import TokenData
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -56,7 +60,7 @@ def get_current_user(
             raise credentials_exception
         token_data = TokenData(user_id=user_id, username=payload.get("username"))
     except jwt.PyJWTError as e:
-        print("Ошибка в get_current_user", e)
+        logger.error(f"Ошибка в get_current_user {e}")
         raise credentials_exception from e
 
     user = db.query(User).filter(User.id == token_data.user_id).first()

@@ -41,23 +41,15 @@ class ImageDetector:
             results = self.triton_client.detect(
                 image, confidence_threshold=self.confidence
             )
-            print("imageDetector. detect")
-            print(self.triton_client)
-            print(self.confidence)
-            print(results)
-            # results = self.model(image, conf=self.confidence, verbose=False)
 
-            # Парсинг результатов
             detections = []
             boxes = []
             classes = []
             confidences = []
 
-            # if len(results) > 0:
-            result = results  # Берем первое изображение
+            result = results
 
             if len(result) > 0:
-                # Получаем данные из результата
                 boxes_data = result["boxes"]  # [x1, y1, x2, y2]
                 confs_data = result["confidences"]
                 classes_data = result["classes"]
@@ -114,16 +106,12 @@ class ImageDetector:
         # Получаем оригинальный размер
         orig_w, orig_h = image.size
 
-        print("get_crops called")
-        print(f"  Image size: {orig_w}x{orig_h}")
-        print(f"  BBoxes: {bboxes}")
-
         for box in bboxes:
             # Распаковываем bbox
             if len(box) == 4:
                 x1, y1, x2, y2 = box
             else:
-                print(f"  ⚠️ Invalid bbox format: {box}")
+                logger.info(f"⚠️ Неправильный формат bbox: {box}")
                 continue
 
             # Проверяем, нормализованные ли координаты
@@ -131,21 +119,20 @@ class ImageDetector:
 
             if is_normalized:
                 # Координаты уже нормализованы (0-1) - просто масштабируем
-                print(f"  Normalized bbox: ({x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f})")
+                logger.info(
+                    f"Нормализованные значения: ({x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f})"
+                )
 
                 x1_orig = int(x1 * orig_w)
                 y1_orig = int(y1 * orig_h)
                 x2_orig = int(x2 * orig_w)
                 y2_orig = int(y2 * orig_h)
 
-                print(
-                    f"  Scaled to ({orig_w}x{orig_h}): ({x1_orig}, {y1_orig}, {x2_orig}, {y2_orig})"
-                )
             else:
-                # Координаты в пикселях (возможно для 1024x1024)
-                print(f"  Pixel bbox: ({x1:.2f}, {y1:.2f}, {x2:.2f}, {y2:.2f})")
+                logger.info(
+                    f"Пиксельные bbox: ({x1:.2f}, {y1:.2f}, {x2:.2f}, {y2:.2f})"
+                )
 
-                # Если координаты в пикселях для 1024x1024, масштабируем
                 input_size = 1024
                 scale_x = orig_w / input_size
                 scale_y = orig_h / input_size
@@ -155,11 +142,7 @@ class ImageDetector:
                 x2_orig = int(x2 * scale_x)
                 y2_orig = int(y2 * scale_y)
 
-                print(
-                    f"  Scaled from {input_size}x{input_size} to {orig_w}x{orig_h}: ({x1_orig}, {y1_orig}, {x2_orig}, {y2_orig})"
-                )
-
-            # Корректируем порядок (на случай если x1 > x2 или y1 > y2)
+            # Корректировка порядка координат
             if x2_orig < x1_orig:
                 x1_orig, x2_orig = x2_orig, x1_orig
             if y2_orig < y1_orig:
@@ -171,81 +154,15 @@ class ImageDetector:
             x2_orig = max(x1_orig + 1, min(x2_orig, orig_w))
             y2_orig = max(y1_orig + 1, min(y2_orig, orig_h))
 
-            print(f"  Final bbox: ({x1_orig}, {y1_orig}, {x2_orig}, {y2_orig})")
-
             # Проверяем, что bbox валидный
             if x2_orig <= x1_orig or y2_orig <= y1_orig:
-                print("  ⚠️ Invalid bbox after clamping, skipping")
+                logger.warning("Невалидный bbox")
                 continue
 
             # Вырезаем кроп
             crop = image.crop((x1_orig, y1_orig, x2_orig, y2_orig))
-            print(f"  Crop size: {crop.size}")
             crops.append(crop)
 
-        print(f"Total crops: {len(crops)}")
+        logger.info(f"Количество кропов: {len(crops)}")
+        logger.info(f"Кропы: {crops}")
         return crops, (x1_orig, y1_orig, x2_orig, y2_orig)
-
-    # def get_crops(self, image: Image.Image, bboxes: list[list[float]]):
-    #     """
-    #     Вырезание кропов с учетом масштабирования
-
-    #     Args:
-    #         image: Оригинальное изображение (PIL Image)
-    #         bboxes: Координаты из модели [x1, y1, x2, y2] в системе 640x640
-    #         original_size: (width, height) оригинального изображения (если None - берем из image)
-    #     """
-    #     crops = []
-
-    #     # Получаем оригинальный размер
-    #     orig_w, orig_h = image.size  # PIL: (width, height)
-
-    #     # Коэффициенты масштабирования
-    #     print('get crops')
-    #     print((orig_h, orig_w))
-    #     print(bboxes)
-    #     k = 1024.0
-    #     scale_x = orig_w / k
-    #     scale_y = orig_h / k
-
-    #     for x1, y1, x2, y2 in bboxes:
-    #         print(f"Original bbox (640x640): ({x1:.2f}, {y1:.2f}, {x2:.2f}, {y2:.2f})")
-
-    #         # Масштабируем координаты к оригинальному размеру
-    #         x1_orig = x1 * scale_x
-    #         y1_orig = y1 * scale_y
-    #         x2_orig = x2 * scale_x
-    #         y2_orig = y2 * scale_y
-
-    #         # Преобразуем в целые числа для PIL
-    #         x1_orig = int(x1_orig)
-    #         y1_orig = int(y1_orig)
-    #         x2_orig = int(x2_orig)
-    #         y2_orig = int(y2_orig)
-
-    #         # Корректируем порядок (на случай если x1 > x2 или y1 > y2)
-    #         if x2_orig < x1_orig:
-    #             x1_orig, x2_orig = x2_orig, x1_orig
-    #         if y2_orig < y1_orig:
-    #             y1_orig, y2_orig = y2_orig, y1_orig
-
-    #         # Ограничиваем границами изображения
-    #         x1_orig = max(0, x1_orig)
-    #         y1_orig = max(0, y1_orig)
-    #         x2_orig = min(orig_w, x2_orig)
-    #         y2_orig = min(orig_h, y2_orig)
-
-    #         print(
-    #             f"Scaled bbox ({orig_w}x{orig_h}): ({x1_orig}, {y1_orig}, {x2_orig}, {y2_orig})"
-    #         )
-
-    #         # Проверяем, что bbox валидный
-    #         if x2_orig <= x1_orig or y2_orig <= y1_orig:
-    #             print("Warning: Invalid bbox after scaling, skipping")
-    #             continue
-
-    #         # Вырезаем кроп из ОРИГИНАЛЬНОГО изображения (без resize!)
-    #         crop = image.crop((x1_orig, y1_orig, x2_orig, y2_orig))
-    #         crops.append(crop)
-
-    #     return crops
