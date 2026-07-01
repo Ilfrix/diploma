@@ -1,81 +1,82 @@
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field
-from enum import Enum
+from enum import StrEnum
+from typing import Optional
 
-# ========== Auth schemas ==========
+from pydantic import BaseModel, ConfigDict, Field
+
+
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
-    email: str = Field(..., pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    email: str = Field(..., pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
     password: str = Field(..., min_length=6)
+
 
 class UserLogin(BaseModel):
     username: str
     password: str
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TokenData(BaseModel):
     user_id: str
     username: str
 
-# ========== Sample schemas ==========
+
 class SampleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
+
 
 class SampleUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
 
-class SampleStatusEnum(str, Enum):
+
+class ProcessStatusEnum(StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
     PROCESSED = "processed"
     FAILED = "failed"
 
-# Forward references для связанных схем
-class ImageResponse(BaseModel):
-    pass
 
 class SampleResponse(BaseModel):
     id: str
     name: str
-    description: Optional[str]
-    status: SampleStatusEnum
-    error_message: Optional[str] = None
-    isOwner: Optional[bool] = False
-    owner_name: Optional[str] = None
+    description: str | None
+    status: ProcessStatusEnum
+    error_message: str | None = None
+    isOwner: bool | None = False
+    owner_name: str | None = None
     created_at: datetime
     updated_at: datetime
-    image: Optional['ImageResponse'] = None
-    
-    class Config:
-        from_attributes = True
+    image: Optional["ImageResponse"] = None
 
-# ========== Image schemas ==========
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ImageResponse(BaseModel):
     id: str
     image_path: str
     image_hash: str
-    mime_type: Optional[str] = None
+    mime_type: str | None = None
     created_at: datetime
-    crops: Optional[List['CropResponse']] = None
-    
-    class Config:
-        from_attributes = True
+    crops: list["CropResponse"] | None = None
 
-# ========== Crop schemas ==========
+    model_config = ConfigDict(from_attributes=True)
+
+
 class VectorResponse(BaseModel):
     id: str
     crop_id: str
     milvus_id: str
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class CropResponse(BaseModel):
     id: str
@@ -86,26 +87,30 @@ class CropResponse(BaseModel):
     bbox_y1: float
     bbox_x2: float
     bbox_y2: float
-    class_name: Optional[str] = None
-    confidence: Optional[float] = None
+    class_name: str | None = None
+    confidence: float | None = None
     created_at: datetime
-    vector: Optional[VectorResponse] = None
-    
-    class Config:
-        from_attributes = True
+    vector: VectorResponse | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
-# ========== Search/Similarity schemas ==========
 class SimilarImage(BaseModel):
     sample_id: str
     name: str
-    description: Optional[str]
+    description: str | None
     similarity_score: float
     image_id: str
-    image_url: Optional[str] = None
+    image_url: str | None = None
+
 
 class SimilarResponse(BaseModel):
     query_sample_id: str
     query_name: str
-    similar_images: List[SimilarImage]
-    processing_time_ms: Optional[float] = None
+    similar_images: list[SimilarImage]
+    processing_time_ms: float | None = None
+
+
+SampleResponse.model_rebuild()
+ImageResponse.model_rebuild()
+CropResponse.model_rebuild()

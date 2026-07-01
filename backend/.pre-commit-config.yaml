@@ -1,0 +1,62 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.2
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - "pydantic>=2.5.0"
+          - "sqlalchemy>=2.0.23"
+          - "fastapi>=0.104.1"
+          - "types-requests"
+          - "types-python-jose"
+          - "types-passlib"
+        args: [--ignore-missing-imports, --follow-imports=silent]
+        exclude: ^tests/|^alembic/|^migrations/
+
+  # Общие проверки (встроенные в pre-commit)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Проверка концов файлов
+      - id: end-of-file-fixer
+      # Проверка пробелов в конце строк
+      - id: trailing-whitespace
+      # Проверка смешанных табуляций и пробелов
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      # Проверка наличия пустых строк в конце файла
+      - id: check-added-large-files
+        args: [--maxkb=18000]
+      # Проверка синтаксиса Python
+      - id: check-ast
+      # Проверка импортов в правильном порядке (используйте ruff вместо isort)
+      - id: check-case-conflict
+      # Проверка на наличие debugger (pdb, ipdb)
+      - id: debug-statements
+      # Проверка на наличие конфликтующих маркеров (<<<<<<<, >>>>>>>)
+      - id: check-merge-conflict
+      # Проверка на наличие символов BOM
+      - id: fix-byte-order-marker
+      # Проверка на наличие симлинков с абсолютными путями
+      - id: check-symlinks
+
+  # Проверка циклической сложности (опционально)
+  - repo: https://github.com/PyCQA/pylint
+    rev: v3.3.2
+    hooks:
+      - id: pylint
+        args: [--fail-under=8, --exit-zero]
+        additional_dependencies: [
+          "pydantic",
+          "sqlalchemy",
+          "fastapi",
+          "pytest"
+        ]
+        exclude: ^tests/

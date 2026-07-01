@@ -9,9 +9,9 @@ export const authService = {
     });
     if (response.data.access_token) {
       localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify({ 
-        username, 
-        email 
+      localStorage.setItem('user', JSON.stringify({
+        username,
+        email
       }));
     }
     return response.data;
@@ -24,8 +24,8 @@ export const authService = {
     });
     if (response.data.access_token) {
       localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify({ 
-        username 
+      localStorage.setItem('user', JSON.stringify({
+        username
       }));
     }
     return response.data;

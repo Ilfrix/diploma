@@ -39,7 +39,7 @@ const SampleCard = ({ sample, onDelete }) => {
           )}
         </div>
       </div>
-      
+
       <div className="p-4">
         <h3 className="font-semibold text-lg mb-1 truncate">{sample.name}</h3>
         {sample.description && (

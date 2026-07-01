@@ -15,22 +15,22 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       const currentUser = authService.getCurrentUser();
       const currentToken = localStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
-      
+
       if (currentUser && currentToken) {
         setUser(currentUser);
         setToken(currentToken);
       }
       setLoading(false);
     };
-    
+
     initAuth();
   }, []);
 
   // Функция для очистки кэша при смене пользователя
   const clearUserCache = useCallback(() => {
-    // Очищаем все запросы
+    // Очищение всех запросов
     queryClient.clear();
-    // Или инвалидируем конкретные ключи
+    // Инвалидация конкретных ключей
     queryClient.invalidateQueries(['samples']);
     queryClient.invalidateQueries(['sample']);
     queryClient.invalidateQueries(['similar']);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       username
     });
     setToken(localStorage.getItem(AUTH_CONFIG.TOKEN_KEY));
-    // Очищаем кэш после логина
+    // Очищение кэша после логина
     clearUserCache();
     return response;
   }, [clearUserCache]);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       username, email
     });
     setToken(localStorage.getItem(AUTH_CONFIG.TOKEN_KEY));
-    // Очищаем кэш после регистрации
+    // Очищение кэша после регистрации
     clearUserCache();
     return response;
   }, [clearUserCache]);
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     authService.logout();
     setUser(null);
     setToken(null);
-    // Очищаем кэш после логаута
+    // Очищение кэша после логаута
     clearUserCache();
   }, [clearUserCache]);
 

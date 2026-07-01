@@ -10,11 +10,11 @@ const Loader = ({ size = 'large' }) => {
     <div className="flex justify-center items-center py-8">
       <div
         className={`${sizeClasses[size]} border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin`}
-        
+
       />
       Загрузка
     </div>
-    
+
   );
 };
 

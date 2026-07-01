@@ -1,4 +1,3 @@
-// src/components/Search/SimilarImages.jsx
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { samplesService } from '../../services/samples';
@@ -7,14 +6,13 @@ import Loader from '../Common/Loader';
 import AuthorizedImage from '../Common/AuthorizedImage';
 
 const SimilarImages = ({ sampleId, sampleName, similarImages: externalImages, title }) => {
-  // Все хуки должны вызываться в одном порядке всегда
   const { data: similarData, isLoading } = useQuery(
     ['similar', sampleId],
     () => samplesService.getSimilar(sampleId, 12, 0.6),
     { enabled: !!sampleId && !externalImages } // Запрос только если есть sampleId и нет externalImages
   );
 
-  // Режим 1: Поиск по загруженному изображению (есть externalImages)
+  // Поиск по загруженному изображению (есть externalImages)
   if (externalImages) {
     if (externalImages.length === 0) {
       return (
@@ -60,7 +58,7 @@ const SimilarImages = ({ sampleId, sampleName, similarImages: externalImages, ti
     );
   }
 
-  // Режим 2: Поиск по ID образца (есть sampleId)
+  // Поиск по ID образца (есть sampleId)
   // Если запрос еще загружается
   if (isLoading) {
     return <Loader />;

@@ -41,7 +41,7 @@ const SampleDetail = () => {
       toast.error('У вас нет прав на удаление этого эталона');
       return;
     }
-  
+
     if (window.confirm('Вы уверены, что хотите удалить этот эталон?')) {
       deleteMutation.mutate();
     }
@@ -59,9 +59,10 @@ const SampleDetail = () => {
         <FiArrowLeft className="mr-2" />
         Назад
       </button>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="card p-6">
+          {sample.id}
           <AuthorizedImage
             sampleId={sample.id}
             alt={sample.name}
@@ -69,7 +70,7 @@ const SampleDetail = () => {
             thumbnail={false}
           />
         </div>
-        
+
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">{sample.name}</h1>
@@ -77,7 +78,7 @@ const SampleDetail = () => {
               <p className="text-gray-600 text-lg">{sample.description}</p>
             )}
           </div>
-          
+
           <div className="border-t pt-4">
             <p className="text-gray-500">
               Создан: {format(new Date(sample.created_at), 'dd MMMM yyyy, HH:mm', { locale: ru })}
@@ -91,7 +92,7 @@ const SampleDetail = () => {
               </p>
             )}
           </div>
-          
+
           {isOwner && (
           <div className="flex space-x-4 pt-4">
             <Link
@@ -116,7 +117,7 @@ const SampleDetail = () => {
           {!isOwner && (
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-700">
-                🔒 Этот эталон создан другим пользователем. Вы можете просматривать его, 
+                🔒 Этот эталон создан другим пользователем. Вы можете просматривать его,
                 но не можете редактировать или удалять.
               </p>
             </div>
@@ -124,7 +125,7 @@ const SampleDetail = () => {
 
         </div>
       </div>
-      
+
       <div className="mt-12">
         <SimilarImages sampleId={id} sampleName={sample.name} />
       </div>

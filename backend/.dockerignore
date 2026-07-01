@@ -1,0 +1,8 @@
+*_cache
+__pycache__
+.venv
+tests/
+backend.egg-info
+triton-models/
+*.db
+.pre-commit-config.yaml

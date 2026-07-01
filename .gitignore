@@ -10,3 +10,8 @@ models
 uploads
 vector_db
 *.db
+bin/
+*.egg-info/
+runs/
+beds/
+models--timm*
