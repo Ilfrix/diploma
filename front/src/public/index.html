@@ -10,7 +10,6 @@
     <meta name="author" content="Flexible Search System" />
     <meta name="robots" content="index, follow" />
 
-    <!-- Open Graph / Social Media -->
     <meta property="og:title" content="Flexible Search System" />
     <meta property="og:description" content="Система для поиска похожих и дублирующихся изображений" />
     <meta property="og:type" content="website" />
@@ -22,7 +21,6 @@
     <title>FlexSearch - Поиск похожих изображений</title>
 
     <style>
-      /* Стили для предотвращения FOUC (Flash of Unstyled Content) */
       .no-js {
         display: flex;
         justify-content: center;
@@ -76,7 +74,6 @@
     </style>
 
     <script>
-      // Убираем экран загрузки после загрузки React
       window.addEventListener('load', function() {
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
@@ -89,7 +86,6 @@
         }
       });
 
-      // Проверка поддержки WebP
       function checkWebPSupport() {
         var canvas = document.createElement('canvas');
         canvas.width = 1;
@@ -135,7 +131,6 @@
 
     <div id="root"></div>
 
-    <!-- Service Worker для PWA (опционально) -->
     <script>
       if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
         window.addEventListener('load', function() {

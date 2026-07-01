@@ -1,4 +1,3 @@
-// src/components/Common/AuthorizedImage.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -23,7 +22,7 @@ const AuthorizedImage = ({
     const fetchImage = async () => {
       setLoading(true);
       try {
-        // Формируем URL в зависимости от типа
+        // Формирование URL в зависимости от типа
         let url;
         if (thumbnail) {
           url = `http://localhost:8000/api/uploads/thumbnail/${sampleId}?size=${size}`;
@@ -56,7 +55,6 @@ const AuthorizedImage = ({
 
     fetchImage();
 
-    // Cleanup
     return () => {
       if (imageUrl) {
         URL.revokeObjectURL(imageUrl);

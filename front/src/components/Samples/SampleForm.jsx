@@ -50,7 +50,7 @@ const SampleForm = () => {
     onDrop: (acceptedFiles) => {
       const file = acceptedFiles[0];
       setImageFile(file);
-      // Для новых файлов используем локальный preview
+      // Для новых файлов использование локального preview
       setImagePreview(URL.createObjectURL(file));
       setPreviewError(false);
     }
@@ -155,7 +155,7 @@ const SampleForm = () => {
           />
         </div>
 
-        {/* Показываем существующее изображение при редактировании */}
+        {/* Отображение существующего изображения при редактировании */}
         {isEditing && sample?.id && !imageFile && !previewError && (
           <div>
             <label className="block text-gray-700 mb-2">Текущее изображение</label>
@@ -182,7 +182,7 @@ const SampleForm = () => {
           </div>
         )}
 
-        {/* Показываем новое изображение при замене или создании */}
+        {/* Отображение нового изображения при замене или создании */}
         {imagePreview && (
           <div>
             <label className="block text-gray-700 mb-2">
@@ -205,7 +205,7 @@ const SampleForm = () => {
           </div>
         )}
 
-        {/* Показываем дропзону только если нет изображения */}
+        {/* Отображение дропзоны только если нет изображения */}
         {(!isEditing || (isEditing && !sample?.image_path) || imageFile) && (
           <div>
             <label className="block text-gray-700 mb-2">

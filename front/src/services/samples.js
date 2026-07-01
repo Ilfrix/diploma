@@ -1,4 +1,3 @@
-// services/searchService.js
 import { searchApi } from './api';
 
 class SearchService {
@@ -23,24 +22,24 @@ class SearchService {
    */
   async searchByImageAsync(formData, limit = 10, threshold = 0.7, color = null, options = {}) {
     const {
-      maxAttempts = 60,      // Максимум попыток polling (по умолчанию 60)
-      intervalMs = 2000,     // Интервал между попытками (2 секунды)
+      maxAttempts = 60,      // Максимум попыток polling
+      intervalMs = 2000,     // Интервал между попытками
       onStatusChange = null, // Колбэк для отслеживания статуса
     } = options;
 
     const params = { limit, threshold };
     if (color) params.color = color;
 
-    // 1. Отправляем запрос на асинхронную обработку
+    // Отправка запроса на асинхронную обработку
     const response = await searchApi.searchAsync(formData, params);
     const { request_id } = response.data;
 
-    // 2. Уведомляем об отправке
+    // Уведомление об отправке
     if (onStatusChange) {
       onStatusChange({ status: 'queued', requestId: request_id });
     }
 
-    // 3. Polling результата
+    // Polling результата
     const result = await this._pollSearchResult(request_id, maxAttempts, intervalMs, onStatusChange);
 
     return result;
@@ -58,7 +57,7 @@ class SearchService {
         const response = await searchApi.getSearchResult(requestId);
         const data = response.data;
 
-        // Уведомляем об изменении статуса
+        // Уведомление об изменении статуса
         if (onStatusChange) {
           onStatusChange({ status: data.status, requestId });
         }
@@ -78,13 +77,11 @@ class SearchService {
           throw new Error('Search request expired');
         }
 
-        // Статусы 'pending' или 'processing' - продолжаем ждать
         await this._delay(intervalMs);
         attempts++;
 
       } catch (error) {
         if (error.response?.status === 404) {
-          // Запрос еще не создан, ждем
           await this._delay(intervalMs);
           attempts++;
           continue;
@@ -134,7 +131,7 @@ class SearchService {
   }
 }
 
-// Создаем и экспортируем синглтон
+// Создание и экспорт синглтон
 export const searchService = new SearchService();
 
 // Для обратной совместимости с samplesService

@@ -48,14 +48,14 @@ api.interceptors.response.use(
 
 // Базовые методы для работы с API
 export const searchApi = {
-  // Синхронный поиск (старый, для совместимости)
+  // Синхронный поиск
   searchSync: (formData, params) =>
     api.post('/search/similar', formData, {
       params,
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
 
-  // Асинхронный поиск (отправка запроса)
+  // Асинхронный поиск
   searchAsync: (formData, params) =>
     api.post('/search/async', formData, {
       params,
@@ -70,7 +70,7 @@ export const searchApi = {
   getSimilar: (sampleId, params) =>
     api.get(`/samples/${sampleId}/similar`, { params }),
 
-  // CRUD для образцов
+  // CRUD для сэмплов
   getSamples: (params) => api.get('/samples', { params }),
   getSample: (id) => api.get(`/samples/${id}`),
   createSample: (formData) => api.post('/samples', formData, {
